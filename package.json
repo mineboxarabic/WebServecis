@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon expressTest.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "testAuthBook": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./Tests/AuthBookTest.test.js"
   },
   "keywords": [],
   "author": "",

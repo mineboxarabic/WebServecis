@@ -1,8 +1,8 @@
-    import express from 'express';
-    import { AuthBookSQLiteDAO } from './DBLayer/AuthBookSQLiteDAO.js'
-    import { Author } from './Classes/Book.js'
+import express from 'express';
+import {AuthorSQLiteDAO} from '../DBLayer/AuthorSQLiteDAO.js'
+import { Author } from '../Classes/Author.js'
 
-    const app = express().Router();
+const app = express.Router();
 
 /*app.get('/authors/(:id)', (req, res) => {
     let id = req.params.id;
@@ -25,22 +25,26 @@
     
 })*/
 
-export function getAuthor(req, res){
-    let id = req.params.id;
-    
-    if(id == undefined){
-      res.send('Invalid id');
-    }
+export async function getAuthor(req, res, conection) {
+  let id = req.params.id;
 
-    if(isNaN(id)){
-      res.send('Invalid id');
-    }
+  if (id == undefined) {
+    res.status(400);
+    res.send('Invalid id');
+    return;
+  }
 
-    conection.then(async (db) => {
-      let authorDAO = new AuthorSQLiteDAO(db);
-      let result = await authorDAO.read(id);
-      res.send(result);
-    })
+  if (isNaN(id)) {
+    res.status(400);
+    res.send('Invalid id');
+    return;
+  }
+
+  const db = await conection
+    let authorDAO = new AuthorSQLiteDAO(db);
+    let result = await authorDAO.read(id);
+    res.status(200);
+    res.send(result);
 }
 
 /*app.get('/authors', (req, res) => {
@@ -51,33 +55,45 @@ export function getAuthor(req, res){
   })
 }) */
 
-export function getAuthors(req, res){
-    conection.then(async (db) => {
-      let authorDAO = new AuthorSQLiteDAO(db);
-      let result = await authorDAO.readAll();
-      res.send(result);
-    })
+export async function getAuthors(req, res, conection) {
+  const db = await conection
+  let authorDAO = new AuthorSQLiteDAO(db);
+  let result = await authorDAO.readAll();
+  if (result == undefined) {
+    res.status(400);
+    res.send("Invalid id");
+  }
+  if (result.length == 0) {
+    res.status(404);
+    res.send("No authors");
+  }
+
+  res.status(200);
+  res.send(result);
 }
 
-
-app.post('/authors', (req, res) => {
+/*
+  app.post('/authors', (req, res) => {
+  })
+ */
+export async function createAuthor(req, res, conection) {
   let authorBody = req.body;
-  authorBody = JSON.parse(JSON.stringify(authorBody));
-  console.log(authorBody);
-  if(authorBody.name == undefined || authorBody.date == undefined || authorBody.rate == undefined){
 
+  authorBody = JSON.parse(JSON.stringify(authorBody));
+
+  if (authorBody.name == undefined || authorBody.date == undefined || authorBody.rate == undefined) {
+    res.status(400);
     res.send('Invalid author');
   }
   let author = new Author(authorBody.name, authorBody.date, authorBody.rate);
-  conection.then(async (db) => {
-    let authorDAO = new AuthorSQLiteDAO(db);
-    let result = await authorDAO.create(author);
+  const db = await conection
+  let authorDAO = new AuthorSQLiteDAO(db);
+  let result = await authorDAO.create(author);
+  res.status(201);
+  res.send("You have created : \n" + result);
+}
 
-    res.send("You have created : \n"+result);
-  })
-} )
-
-app.delete('/authors/(:id)', (req, res) => {
+/* app.delete('/authors/(:id)', (req, res) => {
   let id = req.params.id;
   if(id == undefined){
     res.send('Invalid id');
@@ -97,9 +113,32 @@ app.delete('/authors/(:id)', (req, res) => {
 
     }
   })
-})
+}) */
+export async function deleteAuthor(req, res, conection) {
+  let id = req.params.id;
+  if (id == undefined) {
+    res.send('Invalid id');
+  }
 
-app.put('/authors/(:id)', (req, res) => {
+  if (isNaN(id)) {
+    res.send('Invalid id');
+  }
+
+  const db = await conection
+  let authorDAO = new AuthorSQLiteDAO(db);
+  let result = await authorDAO.delete(id);
+
+  if (result == "Invalid id") {
+    res.status(400);
+    res.send("Invalid id");
+  } else {
+    res.status(200);
+    res.send("YOU Have deleted this:" + result);
+  }
+}
+
+
+/* app.put('/authors/(:id)', (req, res) => {
   let id = req.params.id;
   let authorBody = req.body;
   authorBody = JSON.parse(JSON.stringify(authorBody));
@@ -123,6 +162,41 @@ app.put('/authors/(:id)', (req, res) => {
     let result = await authorDAO.update(author, id);
     res.send("You have updated : \n"+result);
   })
-} )
+} ) */
 
-module.exports = app;
+export async function updateAuthor(req, res, conection) {
+  let id = req.params.id;
+  let authorBody = req.body;
+  authorBody = JSON.parse(JSON.stringify(authorBody));
+
+  if (id == undefined) {
+    res.status(400);
+    res.send('Invalid id');
+  }
+
+  if (isNaN(id)) {
+    res.status(400);
+    res.send('Invalid id');
+  }
+
+  if (authorBody.name == undefined || authorBody.date == undefined || authorBody.rate == undefined) {
+    res.status(400);
+    res.send('Invalid author');
+  }
+
+  let author = new Author(authorBody.name, authorBody.date, authorBody.rate);
+  const db = await conection
+  let authorDAO = new AuthorSQLiteDAO(db);
+  let result = await authorDAO.update(author, id);
+  res.status(200);
+  res.send("You have updated : \n" + result);
+
+}
+
+export async function getLastId(conection) {
+  const db = await conection
+  let authorDAO = new AuthorSQLiteDAO(db);
+  let result = await authorDAO.getLastId();
+
+  return parseInt(result['MAX(id)']);
+}

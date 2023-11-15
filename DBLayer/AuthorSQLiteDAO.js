@@ -61,6 +61,12 @@ export class AuthorSQLiteDAO extends AuthorDAO {
         await this.db.exec(`DELETE FROM authors`);
     }
 
+    async getLastId(){
+        let id = await this.db.get(`SELECT MAX(id) FROM authors`);
+
+        return id;
+    }
+
 
     
       

@@ -11,7 +11,10 @@ export class AuthBookSQLiteDAO extends AuthBookDAO {
 
     this.db = db;
   }
-
+  async getLastId(){
+    let lastId = await this.db.get(`SELECT * FROM authbooks ORDER BY id DESC LIMIT 1`);
+    return lastId.id;
+  }
     async update(authbook, id) {
         await this.db.run(`UPDATE authbooks SET book_id = '${authbook.book}', author_id = '${authbook.author}' WHERE id = ${id}`);
         let newAuthBook = await this.read(id);

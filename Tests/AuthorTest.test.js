@@ -1,12 +1,11 @@
-import * as bookRoutes from '../Routes/BooksRoute.js';
+import * as authorRoutes from '../Routes/AuthorRoute.js';
 import { open } from 'sqlite'
 import sqlite3 from 'sqlite3'
-import { BookSQLiteDAO } from '../DBLayer/BookSQLiteDAO.js'
+
 /* this.id = null;
-this.title = title;
-this.date = date;
-this.author = author;
-this.rated = rated;
+    this.name = name;
+    this.date = date;
+    this.rate = rate;
  */
 
 let conection = open({
@@ -15,16 +14,15 @@ let conection = open({
   });
 
 
-describe('Test for book creation',  () => { 
+describe('Test for author creation',  () => { 
     let date = new Date();
 
-    test('Book created', async() => {
+    test('Author created', async() => {
     let req = {
         body: {
-            title : "BookTestCreation",
+            name : "AuthorTestCreation",
             date : date,
-            author : 1,
-            rated : 1
+            rate : 1
         }
     }
 
@@ -34,25 +32,24 @@ describe('Test for book creation',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await bookRoutes.createBook(req, res, conection);
+    await authorRoutes.createAuthor(req, res, conection);
         expect(res.status).toBe(201);
     });
 })
 
 
-describe('Test for book update',  () => {
-    test('Book updated', async() => {
+describe('Test for author update',  () => {
+    test('Author updated', async() => {
     let date = new Date();
-    let lastId = await bookRoutes.getLastId(conection);
+    let lastId = await authorRoutes.getLastId(conection);
     let req = {
         params: {
             id : lastId
         },
         body: {
-            title : "BookTestUpdate",
+            name : "AuthorTestUpdate",
             date : date,
-            author : 1,
-            rated : 1
+            rate : 1
         }
     }
 
@@ -62,14 +59,14 @@ describe('Test for book update',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await bookRoutes.updateBook(req, res, conection);
+    await authorRoutes.updateAuthor(req, res, conection);
     expect(res.status).toBe(200);
     });
 })
 
-describe('Test for book delete',  () => {
-    test('Book deleted', async() => {
-   let lastId = await bookRoutes.getLastId(conection);
+describe('Test for author delete',  () => {
+    test('Author deleted', async() => {
+   let lastId = await authorRoutes.getLastId(conection);
     let req = {
         params: {
             id : lastId
@@ -82,15 +79,15 @@ describe('Test for book delete',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await bookRoutes.deleteBook(req, res, conection);
+    await authorRoutes.deleteAuthor(req, res, conection);
     expect(res.status).toBe(200);
     });
 })
 
 
-describe('Test for book get',  () => {
-    test('Book get', async() => {
-    let lastId = await bookRoutes.getLastId(conection);
+describe('Test for author get',  () => {
+    test('Author get', async() => {
+    let lastId = await authorRoutes.getLastId(conection);
     let req = {
         params: {
             id : lastId
@@ -103,13 +100,13 @@ describe('Test for book get',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await bookRoutes.getBook(req, res, conection);
+    await authorRoutes.getAuthor(req, res, conection);
     expect(res.status).toBe(200);
     });
 })
 
-describe('Test for book get all',  () => {
-    test('Book get all', async() => {
+describe('Test for author get all',  () => {
+    test('Author get all', async() => {
     let req = {
         params: {
         }
@@ -121,7 +118,7 @@ describe('Test for book get all',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await bookRoutes.getAllBooks(req, res, conection);
+    await authorRoutes.getAuthors(req, res, conection);
     expect(res.status).toBe(200);
     });
 })

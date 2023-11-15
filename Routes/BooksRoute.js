@@ -26,22 +26,25 @@ const app = express.Router();
     
 })
  */
-export function getBook(req, res,conection){
+export async function getBook(req, res,conection){
     let id = req.params.id;
 
     if(id == undefined){
+        res.status(400);
         res.send('Invalid id');
     }
 
     if(isNaN(id)){
+        res.status(400);
         res.send('Invalid id');
     }
 
-    conection.then(async (db) => {
-        let bookDAO = new BookSQLiteDAO(db);
-        let result = await bookDAO.read(id);
-        res.send(result);
-    })
+    const db = await conection
+    let bookDAO = new BookSQLiteDAO(db);
+    let result = await bookDAO.read(id);
+    res.status(200);
+    res.send(result);
+    
 }
 
 
@@ -209,14 +212,20 @@ export async function updateBook(req, res,conection){
     let result = await bookDAO.update(book, id);
 
     res.status(200);
-    res.send("You have updated : \n"+result.title+" "+lastId);
+    res.send("You have updated : \n"+result.title);
 }
-
+export async function getAllBooks(req,res,conection){
+    const db = await conection
+    let bookDAO = new BookSQLiteDAO(db);
+    let result = await bookDAO.readAll();
+    res.status(200);
+    res.send(result);
+    
+}
 export async function getLastId(conection){
     const db = await conection
     let bookDAO = new BookSQLiteDAO(db);
     let lastId = await bookDAO.getLastID();
-    console.log(lastId['MAX(id)']);
     return parseInt(lastId['MAX(id)']);
 }
 
