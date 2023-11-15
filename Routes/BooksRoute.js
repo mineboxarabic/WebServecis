@@ -1,31 +1,9 @@
-import express from 'express';
 import { BookSQLiteDAO } from '../DBLayer/BookSQLiteDAO.js'
 import { Book } from '../Classes/Book.js'
 
-const app = express.Router();
 
 
-/* app.get('/books/(:id)', (req, res) => {
-    let id = req.params.id;
-    
-    if(id == undefined){
-      res.send('Invalid id');
-    }
 
-    if(isNaN(id)){
-      res.send('Invalid id');
-    }
-
-    conection.then(async (db) => {
-      let bookDAO = new BookSQLiteDAO(db);
-      let result = await bookDAO.read(id);
-      res.send(result);
-    })
-  
-    
-    
-})
- */
 export async function getBook(req, res,conection){
     let id = req.params.id;
 
@@ -48,21 +26,6 @@ export async function getBook(req, res,conection){
 }
 
 
-
-
-/* app.get('/books', (req, res) => {
-
-
-  conection.then(async (db) => {
-    let bookDAO = new BookSQLiteDAO(db);
-    let result = await bookDAO.readAll();
-    res.send(result);
-  })
-
-
-  
-}) */
-
 export function getBooks(req, res,conection){
     conection.then(async (db) => {
         let bookDAO = new BookSQLiteDAO(db);
@@ -70,24 +33,6 @@ export function getBooks(req, res,conection){
         res.send(result);
     })
 }
-
-
-/* app.post('/books', (req, res) => {
-  let bookBody = req.body;
-  bookBody = JSON.parse(JSON.stringify(bookBody));
-  console.log(bookBody);
-  if(bookBody.title == undefined || bookBody.date == undefined || bookBody.author == undefined || bookBody.rated == undefined){
-
-    res.send('Invalid book');
-  }
-  let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
-  conection.then(async (db) => {
-    let bookDAO = new BookSQLiteDAO(db);
-    let result = await bookDAO.create(book);
-
-    res.send("You have created : \n"+result);
-  })
-}) */
 
 export async function createBook(req, res,conection){
     let bookBody = req.body;
@@ -105,30 +50,6 @@ export async function createBook(req, res,conection){
     res.status(201);
     res.send("You have created : \n"+result.title);
   }
-
-
-
-/* app.delete('/books/(:id)', (req, res) => {
-  let id = req.params.id;
-  if(id == undefined){
-    res.send('Invalid id');
-  }
-
-  if(isNaN(id)){
-    res.send('Invalid id');
-  }
-
-  conection.then(async (db) => {
-    let bookDAO = new BookSQLiteDAO(db);
-    let result = await bookDAO.delete(id);
-    if(result == "Invalid id"){
-      res.send("Invalid id");
-    }else{
-      res.send("YOU Have deleted this:" + result);
-
-    }
-  })
-}) */
 
 export async function deleteBook(req, res,conection){
 
@@ -156,34 +77,6 @@ export async function deleteBook(req, res,conection){
         res.send("You have deleted : " + result.id);
     }
 }
-
-
-/* app.put('/books/(:id)', (req, res) => {
-  let id = req.params.id;
-  let bookBody = req.body;
-  bookBody = JSON.parse(JSON.stringify(bookBody));
-  
-  if(id == undefined){
-    res.send('Invalid id');
-  }
-
-  if(isNaN(id)){
-    res.send('Invalid id');
-  }
-
-  if(bookBody.title == undefined || bookBody.date == undefined || bookBody.author == undefined || bookBody.rated == undefined){
-
-    res.send('Invalid book');
-  }
-
-  let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
-  conection.then(async (db) => {
-    let bookDAO = new BookSQLiteDAO(db);
-    let result = await bookDAO.update(book, id);
-    res.send("You have updated : \n"+result);
-  })
-}
-) */
 
 export async function updateBook(req, res,conection){
     let id = req.params.id;
@@ -229,4 +122,26 @@ export async function getLastId(conection){
     return parseInt(lastId['MAX(id)']);
 }
 
-export default app;
+export async function createRoutes(app, conection){
+    app.get('/books/(:id)', (req, res) => {
+      getBook(req, res,conection);
+    });
+    
+    app.get('/books', (req, res) => {
+      getBooks(req, res,conection);
+    });
+    
+    app.post('/books', (req, res) => {
+      createBook(req, res,conection);
+    });
+    
+    app.delete('/books/(:id)', (req, res) => {
+      deleteBook(req, res,conection);
+    }
+    )
+    
+    app.put('/books/(:id)', (req, res) => {
+      updateBook(req, res,conection);
+    }
+  )
+}

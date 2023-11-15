@@ -39,10 +39,6 @@ open({
     `);
 
 
-
-
-
-
     db.exec(`CREATE TABLE If NOT EXISTS authbooks
     (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +48,7 @@ open({
 
 
 
-
+/*
     let book = new Book("The Hobbit2",new Date(), 2, 1);
     let book2 = new Book("The Hobbit3",new Date(), 3, 2);
     
@@ -86,7 +82,7 @@ open({
     authbookDAO.create(authbook);
     authbookDAO.create(authbook2);
 
-
+*/
 
   })
 

@@ -4,8 +4,11 @@ import { open } from 'sqlite'
 
 import { BookSQLiteDAO } from './DBLayer/BookSQLiteDAO.js'
 
-import bookRouter from './Routes/BooksRoute.js'
 import * as bookRoutes from './Routes/BooksRoute.js';
+import * as authorRoutes from './Routes/AuthorRoute.js';
+import * as authBookRoutes from './Routes/AuthBookRoute.js';
+
+
 const app = express()
 const port = 3000
 
@@ -17,38 +20,9 @@ let conection = open({
   driver: sqlite3.Database
 });
 
-app.get('/', (req, res) => {
-  conection.then(async (db) => {
-    let bookDAO = new BookSQLiteDAO(db);
-    let result = await bookDAO.readAll();
-    res.send(result);
-  })
-  
-})
 
-app.get('/books/(:id)', (req, res) => {
-    bookRoutes.getBook(req, res,conection);
 
-});
-
-app.get('/books', (req, res) => {
-    bookRoutes.getBooks(req, res,conection);
-});
-
-app.post('/books', (req, res) => {
-    bookRoutes.createBook(req, res,conection);
-});
-
-app.delete('/books/(:id)', (req, res) => {
-    bookRoutes.deleteBook(req, res,conection);
-}
-)
-
-app.put('/books/(:id)', (req, res) => {
-    bookRoutes.updateBook(req, res,conection);
-}
-)
-
+bookRoutes.createRoutes(app,conection);
 
 
 
