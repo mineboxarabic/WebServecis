@@ -5,16 +5,19 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon expressTest.js",
+    "dev": "nodemon Application.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "testAuthBook": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./Tests/AuthBookTest.test.js"
+    "testAuthBook": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./Tests/AuthBookTest.test.js",
+    "testUser": "node --experimental-vm-modules node_modules/jest/bin/jest.js ./Tests/UserTest.test.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.0.1",
     "sqlite": "^5.0.1",
     "sqlite3": "^5.1.6"

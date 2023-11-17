@@ -1,6 +1,6 @@
 
-import { Author } from '../Classes/Author.js';
-import { AuthorDAO } from '../DAO Layer/AuthorDAO.js'
+import { Author } from '../Models/Author.js';
+import { AuthorDAO } from '../dataAccess/AuthorDAO.js'
 
 export class AuthorSQLiteDAO extends AuthorDAO {
     constructor(db) {
@@ -17,21 +17,15 @@ export class AuthorSQLiteDAO extends AuthorDAO {
 
     async delete(id) {
 
-        /*        let book = await this.read(id);
-        if(book == undefined){
-            return "Invalid id"
-        }
 
-         await this.db.exec(`DELETE FROM books WHERE id = ${id}`);
-        return "You have deleted : \n"+book; */
 
         let author = await this.read(id);
         if(author == undefined){
-            return "Invalid id"
+            return undefined;
         }
             
              await this.db.exec(`DELETE FROM authors WHERE id = ${id}`);
-            return "You have deleted : \n"+author;
+            return author;
       
     }
 

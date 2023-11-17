@@ -1,5 +1,5 @@
-import {AuthorSQLiteDAO} from '../DBLayer/AuthorSQLiteDAO.js'
-import { Author } from '../Classes/Author.js'
+import {AuthorSQLiteDAO} from '../repositories/AuthorSQLiteDAO.js'
+import { Author } from '../Models/Author.js'
 
 
 
@@ -121,3 +121,27 @@ let result = await authorDAO.getLastId();
 
 return parseInt(result['MAX(id)']);
 }
+
+export async function createRoutes(app, conection) {
+  app.get('/authors/:id', (req, res) => {
+    getAuthor(req, res, conection);
+  });
+
+  app.get('/authors', (req, res) => {
+    getAuthors(req, res, conection);
+  });
+
+  app.post('/authors', (req, res) => {
+    createAuthor(req, res, conection);
+  });
+
+  app.delete('/authors/:id', (req, res) => {
+    deleteAuthor(req, res, conection);
+  });
+
+  app.put('/authors/:id', (req, res) => {
+    updateAuthor(req, res, conection);
+  });
+}
+
+

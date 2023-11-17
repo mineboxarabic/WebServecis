@@ -1,41 +1,23 @@
+import logo from './logo.svg';
 import './App.css';
-import {useEffect} from 'react';
-import {useState} from 'react';
+
 function App() {
-  async function getData(){
-    let data = fetch('http://localhost:3001/books',{
-      method: "GET"
-    })
-    .then(response => response.json())
-    .then(data => console.log(data))
-
-    return data;
-  }
-  const [data, setData] = useState([]);
-  useEffect(() => {
-    getData().then((data) => {
-      setData(data);
-    })
-
-  },[])
-
   return (
     <div className="App">
-      <button>Get Data</button>
-      <div>
-        {
-          
-          data.map((book) => {
-            return(
-              <div>
-                <h2>{book.title}</h2>
-                <p>{book.id}</p>
-              </div>
-            )
-          })
-        }
-      </div>
-      
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
     </div>
   );
 }

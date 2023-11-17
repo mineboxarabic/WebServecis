@@ -1,5 +1,5 @@
-import { BookSQLiteDAO } from '../DBLayer/BookSQLiteDAO.js'
-import { Book } from '../Classes/Book.js'
+import { BookSQLiteDAO } from '../repositories/BookSQLiteDAO.js'
+import { Book } from '../Models/Book.js'
 
 
 

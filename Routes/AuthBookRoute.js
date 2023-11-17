@@ -1,5 +1,5 @@
-import { AuthBookSQLiteDAO } from '../DBLayer/AuthBookSQLiteDAO.js';
-import { AuthBooks } from '../Classes/AuthBooks.js';
+import { AuthBookSQLiteDAO } from '../repositories/AuthBookSQLiteDAO.js';
+import { AuthBooks } from '../Models/AuthBooks.js';
 
 
 export async function createAuthBook(req, res, conection) {
@@ -108,4 +108,25 @@ export async function getLastIdAuthBook(conection) {
   return result;
 }
 
-  
+
+export async function createRoutes(app, conection) {
+  app.post('/authbooks', (req, res) => {
+    createAuthBook(req, res, conection);
+  });
+
+  app.get('/authbooks/:id', (req, res) => {
+    readAuthBook(req, res, conection);
+  });
+
+  app.get('/authbooks', (req, res) => {
+    readAllAuthBook(req, res, conection);
+  });
+
+  app.put('/authbooks/:id', (req, res) => {
+    updateAuthBook(req, res, conection);
+  });
+
+  app.delete('/authbooks/:id', (req, res) => {
+    deleteAuthBook(req, res, conection);
+  });
+}

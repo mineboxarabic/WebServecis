@@ -3,21 +3,10 @@ import { open } from 'sqlite'
 
 
 
-import { BookDAO } from './DAO Layer/BooksDAO.js'
-import { Book }  from './Classes/Book.js'
-import { BookSQLiteDAO } from './DBLayer/BookSQLiteDAO.js'
-
-import { Author }  from './Classes/Author.js'
-import { AuthorSQLiteDAO } from './DBLayer/AuthorSQLiteDAO.js'
-import { AuthBooks } from './Classes/AuthBooks.js'
-import { AuthBookSQLiteDAO } from './DBLayer/AuthBookSQLiteDAO.js'
-
-
 open({
     filename: './database.db',
     driver: sqlite3.Database
   }).then((db) => {
-
 
     db.exec(`CREATE TABLE If NOT EXISTS authors 
     ( id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,8 +15,6 @@ open({
            rate INT);
     `
         );
-
-
     db.exec(`CREATE TABLE If NOT EXISTS books 
     (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,13 +24,18 @@ open({
         author_id INT
     );
     `);
-
-
     db.exec(`CREATE TABLE If NOT EXISTS authbooks
     (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         author_id INT,
         book_id INT
+    );`);
+    db.exec(`CREATE TABLE If NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
+        email VARCHAR(100) NOT NULL,
+        password VARCHAR(100) NOT NULL,
+        role INT NOT NULL
     );`);
 
 

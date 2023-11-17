@@ -1,8 +1,8 @@
 
-import { Author } from '../Classes/Author.js';
-import { AuthBookDAO } from '../DAO Layer/AuthBookDAO.js'
-import { Book } from '../Classes/Book.js';
-import { AuthBooks } from '../Classes/AuthBooks.js';
+import { Author } from '../Models/Author.js';
+import { AuthBookDAO } from '../dataAccess/AuthBookDAO.js'
+import { Book } from '../Models/Book.js';
+import { AuthBooks } from '../Models/AuthBooks.js';
 
 
 export class AuthBookSQLiteDAO extends AuthBookDAO {
@@ -24,30 +24,29 @@ export class AuthBookSQLiteDAO extends AuthBookDAO {
     async delete(id) {
         let authbook = await this.read(id);
         if(authbook == undefined){
-            return "Invalid id"
+            return undefined;
         }
             
-             await this.db.exec(`DELETE FROM authbooks WHERE id = ${id}`);
-            return "You have deleted : \n"+authbook;
-
+        await this.db.exec(`DELETE FROM authbooks WHERE id = ${id}`);
+        return authbook;
     }
 
     async create(authbook) {
         
-        const reqest = await this.db.run(`INSERT INTO authbooks (book_id, author_id) VALUES ('${authbook.book}', '${authbook.author}')`);
-        authbook.setID(reqest.lastID);
-        return authbook;
+    const reqest = await this.db.run(`INSERT INTO authbooks (book_id, author_id) VALUES ('${authbook.book}', '${authbook.author}')`);
+    authbook.setID(reqest.lastID);
+    return authbook;
     
     }
 
     async read(id) {
-            const authbook = await this.db.get(`SELECT * FROM authbooks WHERE id = ${id}`);
-            if(authbook == undefined){
-                return undefined;
-            }
-            let authbookObject = new AuthBooks(authbook.book_id, authbook.author_id);
-            authbookObject.setID(authbook.id);
-            return authbookObject;
+        const authbook = await this.db.get(`SELECT * FROM authbooks WHERE id = ${id}`);
+        if(authbook == undefined){
+            return undefined;
+        }
+        let authbookObject = new AuthBooks(authbook.book_id, authbook.author_id);
+        authbookObject.setID(authbook.id);
+        return authbookObject;
     }
 
 
