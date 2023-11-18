@@ -7,6 +7,7 @@ import { BookSQLiteDAO } from './repositories/BookSQLiteDAO.js'
 import * as bookRoutes from './Routes/BooksRoute.js';
 import * as authorRoutes from './Routes/AuthorRoute.js';
 import * as authBookRoutes from './Routes/AuthBookRoute.js';
+import * as userRoutes from './Routes/UsersRoute.js';
 
 
 const app = express()
@@ -24,6 +25,8 @@ let conection = open({
 bookRoutes.createRoutes(app,conection);
 authorRoutes.createRoutes(app,conection);
 authBookRoutes.createRoutes(app,conection);
+userRoutes.createRoutes(app,conection);
+
 
 
 
