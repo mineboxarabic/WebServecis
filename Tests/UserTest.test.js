@@ -10,7 +10,6 @@ let conection = open({
   });
 
 describe('Test for user creation',  () => { 
-    let date = new Date();
 
     test('User created', async() => {
     let req = {

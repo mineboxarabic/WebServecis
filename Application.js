@@ -1,9 +1,6 @@
 import express from 'express'
 import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
-
-import { BookSQLiteDAO } from './repositories/BookSQLiteDAO.js'
-
 import * as bookRoutes from './Routes/BooksRoute.js';
 import * as authorRoutes from './Routes/AuthorRoute.js';
 import * as authBookRoutes from './Routes/AuthBookRoute.js';
