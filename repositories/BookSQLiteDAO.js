@@ -46,6 +46,7 @@ export class BookSQLiteDAO extends BookDAO {
     }
 
     async readAll() {
+
         return await this.db.all(`SELECT * FROM books`);
     }
 

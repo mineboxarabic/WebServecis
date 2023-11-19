@@ -6,15 +6,24 @@ import * as authorRoutes from './Routes/AuthorRoute.js';
 import * as authBookRoutes from './Routes/AuthBookRoute.js';
 import * as userRoutes from './Routes/UsersRoute.js';
 
+import cors from 'cors';
+
+
+
 
 const app = express()
 const port = 3001
 
 app.use(express.json());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  next();
-})
+
+
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'x-requested-with', 'Accept']
+}));
+
+
 let conection = open({
   filename: './database.db',
   driver: sqlite3.Database

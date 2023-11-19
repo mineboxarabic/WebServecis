@@ -1,7 +1,7 @@
 import * as bookRoutes from '../Routes/BooksRoute.js';
 import { open } from 'sqlite'
 import sqlite3 from 'sqlite3'
-import { BookSQLiteDAO } from '../DBLayer/BookSQLiteDAO.js'
+import { BookSQLiteDAO } from '../repositories/BookSQLiteDAO.js'
 /* this.id = null;
 this.title = title;
 this.date = date;
@@ -39,6 +39,25 @@ describe('Test for book creation',  () => {
     });
 })
 
+describe('Test for book read',  () => {
+    test('Book get', async() => {
+    let lastId = await bookRoutes.getLastId(conection);
+    let req = {
+        params: {
+            id : lastId
+        }
+    }
+
+    const res = {
+        text: "",
+        send: (input) => { res.text = input; },
+        status: (input) => { res.status = input; }
+    };
+
+    await bookRoutes.readBook(req, res, conection);
+    expect(res.status).toBe(200);
+    });
+})
 
 describe('Test for book update',  () => {
     test('Book updated', async() => {
@@ -88,28 +107,8 @@ describe('Test for book delete',  () => {
 })
 
 
-describe('Test for book get',  () => {
-    test('Book get', async() => {
-    let lastId = await bookRoutes.getLastId(conection);
-    let req = {
-        params: {
-            id : lastId
-        }
-    }
-
-    const res = {
-        text: "",
-        send: (input) => { res.text = input; },
-        status: (input) => { res.status = input; }
-    };
-
-    await bookRoutes.getBook(req, res, conection);
-    expect(res.status).toBe(200);
-    });
-})
-
-describe('Test for book get all',  () => {
-    test('Book get all', async() => {
+describe('Test for book read all',  () => {
+    test('Book read all', async() => {
     let req = {
         params: {
         }
@@ -121,7 +120,7 @@ describe('Test for book get all',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await bookRoutes.getAllBooks(req, res, conection);
+    await bookRoutes.readBooks(req, res, conection);
     expect(res.status).toBe(200);
     });
 })

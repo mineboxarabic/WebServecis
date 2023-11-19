@@ -12,12 +12,13 @@ let conection = open({
 describe('Test for user creation',  () => { 
 
     test('User created', async() => {
+        let lastId = await userRoute.getLastId(conection);
+        let email = "test"+lastId+"@gmail.com"
     let req = {
         body: {
             name : "UserTestCreationxxxx",
-            email : "yassin@adem.justin",
-            password : "123456",
-            role: 1,
+            email : email,
+            password : "123456"
         }
     }
 
@@ -34,8 +35,26 @@ describe('Test for user creation',  () => {
     );
 }
 )
+describe('Test for user read',  () => {
+    test('User read', async() => {
+    let date = new Date();
+    let lastId = await userRoute.getLastId(conection);
+    let req = {
+        params: {
+            id : lastId
+        }
+    }
 
-
+    const res = {
+        text: "",
+        send: (input) => { res.text = input; },
+        status: (input) => { res.status = input; }
+    };
+    await userRoute.readUser(req, res, conection);
+        expect(res.status).toBe(200);
+    }
+    );
+})
 describe('Test for user update',  () => {
     test('User updated', async() => {
     let date = new Date();
@@ -66,31 +85,11 @@ describe('Test for user update',  () => {
     );
 })
 
-describe('Test for user read',  () => {
-    test('User read', async() => {
-    let date = new Date();
-    let lastId = await userRoute.getLastId(conection);
-    let req = {
-        params: {
-            id : lastId
-        }
-    }
-
-    const res = {
-        text: "",
-        send: (input) => { res.text = input; },
-        status: (input) => { res.status = input; }
-    };
-    await userRoute.readUser(req, res, conection);
-        expect(res.status).toBe(200);
-    }
-    );
-})
-
 
  describe('Test for user delete',  () => {
     test('User deleted', async() => {
     let lastId = await userRoute.getLastId(conection);
+
     let req = {
         params: {
             id : lastId
@@ -109,7 +108,7 @@ describe('Test for user read',  () => {
 }) 
 
 
-describe('Test for user get all',  () => {
+describe('Test for user read all',  () => {
     test('User get all', async() => {
     let req = {
         params: {
@@ -121,7 +120,7 @@ describe('Test for user get all',  () => {
         send: (input) => { res.text = input; },
         status: (input) => { res.status = input; }
     };
-    await userRoute.readAllUser(req, res, conection);
+    await userRoute.readUsers(req, res, conection);
         expect(res.status).toBe(200);
     }
     );
@@ -130,11 +129,13 @@ describe('Test for user get all',  () => {
 
 describe('Test for user register',  () => {
     test('User register', async() => {
+    let lastId = await userRoute.getLastId(conection);
+    let email = "test"+lastId+"@gmail.com"
     let req = {
 
             body: {
-                name: "UserTestRegister",
-                email: "test@gmail.com",
+                name: "UserTestRegister1",
+                email: email+'23szzs',
                 password: "123456",
             }
 
@@ -148,7 +149,7 @@ describe('Test for user register',  () => {
         status: (input) => { res.status = input; }
     };
     await userRoute.register(req, res, conection);
-        expect(res.status).toBe(201);
+    expect(res.status).toBe(201);
     }
     );
 })
@@ -158,7 +159,7 @@ describe('Test for user Login',  () => {
     let req = {
 
             body: {
-                email: "test@gmail.com",
+                email: "test12@gmail.com23szzs",
                 password: "123456",
             }
         

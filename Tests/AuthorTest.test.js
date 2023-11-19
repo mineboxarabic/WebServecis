@@ -85,7 +85,7 @@ describe('Test for author delete',  () => {
 })
 
 
-describe('Test for author get',  () => {
+describe('Test for author read',  () => {
     test('Author get', async() => {
     let lastId = await authorRoutes.getLastId(conection);
     let req = {
@@ -100,12 +100,12 @@ describe('Test for author get',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await authorRoutes.getAuthor(req, res, conection);
+    await authorRoutes.readAuthor(req, res, conection);
     expect(res.status).toBe(200);
     });
 })
 
-describe('Test for author get all',  () => {
+describe('Test for author read all',  () => {
     test('Author get all', async() => {
     let req = {
         params: {
@@ -118,7 +118,7 @@ describe('Test for author get all',  () => {
         status: (input) => { res.status = input; }
     };
 
-    await authorRoutes.getAuthors(req, res, conection);
+    await authorRoutes.readAuthors(req, res, conection);
     expect(res.status).toBe(200);
     });
 })

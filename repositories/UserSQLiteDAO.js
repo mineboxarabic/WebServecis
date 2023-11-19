@@ -1,5 +1,5 @@
-import { UserDAO } from "../dataAccess/UserDAO";
-import { User } from "../Models/User";
+import { UserDAO } from "../dataAccess/UserDAO.js";
+import { User } from "../Models/User.js";
 
 export class UserSQLiteDAO extends UserDAO {
     constructor(db) {
@@ -17,21 +17,25 @@ export class UserSQLiteDAO extends UserDAO {
     }
     
     async delete(id) {
+        
         let user = await this.read(id);
+        console.log("the id:", id);
+        console.log("user", JSON.stringify(user));
+
         if (user == undefined) {
         return undefined;
         }
     
         await this.db.exec(`DELETE FROM users WHERE id = ${id}`);
-        return user;
+        return user; 
     }
     
     async create(user) {
         const request = await this.db.run(
         `INSERT INTO users (name, email, password, role) VALUES ('${user.name}', '${user.email}', '${user.password}', '${user.role}')`
         );
-        console.log("From the create",JSON.stringify(user));
-        return user;
+        user.setID(request.lastID);
+        return request;
     }
     
     async read(id) {
@@ -52,11 +56,11 @@ export class UserSQLiteDAO extends UserDAO {
         await this.db.exec(`DELETE FROM users`);
     }
     async getLastId() {
-        let lastId = await this.db.run(
-        `SELECT * FROM users`
+        const lastId = await this.db.get(
+        `SELECT * FROM users ORDER BY id DESC LIMIT 1`
         );
         console.log("From the lastid",JSON.stringify(lastId));
-        return lastId.lastID;
+        return lastId.id;
 
     }
     async getUser(user){

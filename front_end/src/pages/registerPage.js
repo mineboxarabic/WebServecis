@@ -8,12 +8,28 @@ export default function RegisterPage(){
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
 
+    async function submit(e){
+        e.preventDefault();
+        let user = {
+            name : name,
+            email : email,
+            password : password
+        }
 
+        await fetch("http://localhost:3001/register", {
+            method: 'POST', // or 'PUT'
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(user),
+        });
+
+    }
 
     return(
     <div className='register-page'>
         <div className='floating-container'>
-            <form action="http://localhost:3001/register" method="POST">
+            <form>
                 <div className="form-group">
                     <label htmlFor="exampleInputEmail1">Email address</label>
                     <input onChange={(e)=>{
@@ -41,11 +57,24 @@ export default function RegisterPage(){
                     <input type="checkbox" className="form-check-input" id="save"/>
                     <label  className="form-check-label" htmlFor="save">Check me out</label>
                 </div>
-                <button onClick={(e)=>{
-                    
-                    console.log(email);
-                    console.log(password);
-                    console.log(name);
+                <button onClick={ async (e)=>{
+                    e.preventDefault();
+
+                    let user = {
+                        name : name,
+                        email : email,
+                        password : password
+                    }
+
+                    const response = await fetch("http://localhost:3001/register", {
+                        method: 'POST', // or 'PUT'
+                        headers: {
+                        'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(user),
+                    });
+                    const data = await response.json();
+                    console.log(data);
 
                 }} className="btn btn-primary">Submit</button>
             </form>
