@@ -1,7 +1,10 @@
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/registerPage.scss';
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Header } from '../Components/HEADER';
+
+
 export default function RegisterPage(){
 
     const [email, setEmail] = useState('');
@@ -27,8 +30,13 @@ export default function RegisterPage(){
     }
 
     return(
+       
     <div className='register-page'>
+         <Header/>
+         
         <div className='floating-container'>
+       
+
             <form>
                 <div className="form-group">
                     <label htmlFor="exampleInputEmail1">Email address</label>

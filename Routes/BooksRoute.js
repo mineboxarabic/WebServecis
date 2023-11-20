@@ -2,6 +2,7 @@ import { BookSQLiteDAO } from '../repositories/BookSQLiteDAO.js'
 import { Book } from '../Models/Book.js'
 import * as utils from '../Utils/Utils.js'
 
+import jwt from 'jsonwebtoken'
 
 
 
@@ -136,21 +137,38 @@ export async function createRoutes(app, conection){
       readBook(req, res,conection);
     });
     
-    app.get('/books', (req, res) => {
+    app.get('/books',(req, res) => {
       readBooks(req, res,conection);
     });
     
-    app.post('/books', (req, res) => {
+    app.post('/books',(req, res) => {
       createBook(req, res,conection);
     });
     
-    app.delete('/books/(:id)', (req, res) => {
+    app.delete('/books/(:id)', authenticateToken,(req, res) => {
       deleteBook(req, res,conection);
     }
     )
     
-    app.put('/books/(:id)', (req, res) => {
+    app.put('/books/(:id)', authenticateToken,(req, res) => {
       updateBook(req, res,conection);
     }
   )
+}
+
+function authenticateToken(req, res, next){
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    if(token == null){
+        return res.sendStatus(401);
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if(err){
+            return res.sendStatus(403);
+        }
+        req.user = user;
+        next();
+    })
 }

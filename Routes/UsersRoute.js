@@ -199,7 +199,7 @@ export async function createRoutes(app, conection) {
         await readUser(req, res, conection);
     });
 
-    app.get("/users",authenticateToken,async (req, res) => {
+    app.get("/users",async (req, res) => {
         await readUsers(req, res, conection);
     });
 
