@@ -1,5 +1,6 @@
 import { BookSQLiteDAO } from '../repositories/BookSQLiteDAO.js'
 import { Book } from '../Models/Book.js'
+import * as utils from '../Utils/Utils.js'
 
 
 
@@ -7,95 +8,103 @@ import { Book } from '../Models/Book.js'
 
 export async function createBook(req, res,conection){
     let bookBody = req.body;
-    bookBody = JSON.parse(JSON.stringify(bookBody));
 
-    if(bookBody.title == undefined || bookBody.date == undefined || bookBody.author == undefined || bookBody.rated == undefined){
-        res.status(400);
-        const error = { error: "Invalid user", status: 400};
+    const checkAttributes = utils.checkAttributes(bookBody);
+    if(checkAttributes.ok == false){
+        res.status(checkAttributes.error.status);
         res.send(error);
+        return;
     }
-    let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
 
-    const db = await conection
+
+    //I dont need to check if the book exist beacuae i dont need to
+
+ 
+
+    let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+    const db = await conection;
     let bookDAO = new BookSQLiteDAO(db);
     let result = await bookDAO.create(book);
     res.status(201);
     res.send(result);
 }
+
+
 export async function readBook(req, res,conection){
     let id = req.params.id;
-    if (id == undefined) {
-        const error = { error: "Invalid id", status: 400};
-        res.send(error);
+ 
+    const checkId = utils.checkId(id);
+    if(checkId.ok == false){
+        res.status(checkId.error.status);
+        res.send(checkId.error);
+        return;
     }
 
-    if (isNaN(id)) {
-        const error = { error: "Id is not a number", status: 400};
-        res.send(error);
-    }
 
-    const db = await conection
+
+    const db = await conection;
     let bookDAO = new BookSQLiteDAO(db);
     let result = await bookDAO.read(id);
+
     res.status(200);
     res.send(result);
     
 }
+
 export async function updateBook(req, res,conection){
     let id = req.params.id;
     let bookBody = req.body;
     bookBody = JSON.parse(JSON.stringify(bookBody));
     
-    if(id == undefined){
-        res.status(400);
-        res.send('Invalid id');
+    const checkId = utils.checkId(id);
+    if(checkId.ok == false){
+        res.status(checkId.error.status);
+        res.send(checkId.error);
+        return;
     }
 
-    if(isNaN(id)){
-        res.status(400);
-        res.send('Invalid id');
-    }
-
-    if(bookBody.title == undefined || bookBody.date == undefined || bookBody.author == undefined || bookBody.rated == undefined){
-        res.status(400);
-
-        res.send('Invalid book');
+    const checkAttributes = utils.checkAttributes(bookBody);
+    if(checkAttributes.ok == false){
+        res.status(checkAttributes.error.status);
+        res.send(checkAttributes.error);
+        return;
     }
 
     let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
-   const db = await conection
+
+    const db = await conection;
     let bookDAO = new BookSQLiteDAO(db);
     let result = await bookDAO.update(book, id);
 
     res.status(200);
-    res.send("You have updated : \n"+result.title);
+    res.send(result);
 }
+
 export async function deleteBook(req, res,conection){
 
     let id = req.params.id;
-    if(id == undefined){
-        res.status(204);
-        res.send('Invalid id');
+
+    const checkId = utils.checkId(id);
+    if(checkId.ok == false){
+        res.status(checkId.error.status);
+        res.send(checkId.error);
+        return;
     }
 
-    if(isNaN(id)){
-        res.status(204);
-        res.send('Invalid id');
-    }
-
-   const db = await conection
+    const db = await conection
     let bookDAO = new BookSQLiteDAO(db);
     let result = await bookDAO.delete(id);
     
 
-    if(result == "Invalid id"){
-        res.status(204);
-        res.send("Invalid id");
+    if(result == undefined){
+        const error = { error: "Book not found to delete", status: 404};
+        res.status(error.status);
+        res.send(error);
+        return;
     }
-  
-        res.status(200);
-        res.send(result);
-    
+
+    res.status(200);
+    res.send(result);
 }
 
 

@@ -11,7 +11,7 @@ export function checkId(id) {
 }
 
 export function checkAttributes(obj){
-    const error = { error: "Invalid user", ok: false, status: 400 };
+    const error = { error: "Invalid user attributes", ok: false, status: 400 };
     for (const key in obj) {
         if (obj[key] == undefined) {
             return error;

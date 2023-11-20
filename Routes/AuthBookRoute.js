@@ -1,95 +1,86 @@
 import { AuthBookSQLiteDAO } from '../repositories/AuthBookSQLiteDAO.js';
 import { AuthBooks } from '../Models/AuthBooks.js';
+import { Book } from "../Models/Book.js";
+import * as utils from '../Utils/Utils.js'
 
 
-export async function createAuthBook(req, res, conection) {
-  let authbookBody = req.body;
-  authbookBody = JSON.parse(JSON.stringify(authbookBody));
-
-  if (authbookBody.book == undefined || authbookBody.author == undefined) {
-    res.status(400);
-    const error = { error: "Invalid user", status: 400};
-    res.send(error);
+export async function createAuthBook(req, res, connection) {
+  let bookBody = req.body;
+  const checkAttributes = utils.checkAttributes(bookBody);
+  if (!checkAttributes.ok) {
+      res.status(checkAttributes.error.status);res.send(checkAttributes.error);
+      return;
   }
-  let authbook = new AuthBooks(authbookBody.book, authbookBody.author);
-  const db = await conection
-  let authbookDAO = new AuthBookSQLiteDAO(db);
-  let result = await authbookDAO.create(authbook);
 
-
+  let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+  const db = await connection;
+  let bookDAO = new AuthBookSQLiteDAO(db);
+  let result = await bookDAO.create(book);
   res.status(201);
   res.send(result);
 }
 
-export async function readAuthBook(req, res, conection) {
+export async function readAuthBook(req, res, connection) {
   let id = req.params.id;
-  if (id == undefined) {
-      const error = { error: "Invalid id", status: 400};
-      res.send(error);
+  const checkId = utils.checkId(id);
+  if (!checkId.ok) {
+      res.status(checkId.error.status);res.send(checkId.error);
+      return;
   }
 
-  if (isNaN(id)) {
-      const error = { error: "Id is not a number", status: 400};
-      res.send(error);
-  }
-
-  const db = await conection
-  let authbookDAO = new AuthBookSQLiteDAO(db);
-  let result = await authbookDAO.read(id);
+  const db = await connection;
+  let bookDAO = new AuthBookSQLiteDAO(db);
+  let result = await bookDAO.read(id);
   res.status(200);
   res.send(result);
 }
 
-export async function updateAuthBook(req, res, conection) {
+export async function updateAuthBook(req, res, connection) {
   let id = req.params.id;
-  let authbookBody = req.body;
-  authbookBody = JSON.parse(JSON.stringify(authbookBody));
-
-  if (id == undefined) {
-    res.status(400);
-    res.send('Invalid id');
+  let bookBody = req.body;
+  
+  const checkId = utils.checkId(id);
+  if (!checkId.ok) {
+      res.status(checkId.error.status);res.send(checkId.error);
+      return;
   }
 
-  if (isNaN(id)) {
-    res.status(400);
-    res.send('Invalid id');
+  const checkAttributes = utils.checkAttributes(bookBody);
+  if (!checkAttributes.ok) {
+      res.status(checkAttributes.error.status);res.send(checkAttributes.error);
+      return;
   }
 
-  if (authbookBody.book == undefined || authbookBody.author == undefined) {
-    res.status(400);
-    res.send('Invalid authbook');
-  }
-
-  let authbook = new AuthBooks(authbookBody.book, authbookBody.author);
-  const db = await conection
-  let authbookDAO = new AuthBookSQLiteDAO(db);
-  let result = await authbookDAO.update(authbook, id);
-
+  let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+  const db = await connection;
+  let bookDAO = new AuthBookSQLiteDAO(db);
+  let result = await bookDAO.update(book, id);
   res.status(200);
-  res.send("You have updated : \n" + result.book);
+  res.send(result);
 }
 
-export async function deleteAuthBook(req, res, conection) {
+export async function deleteAuthBook(req, res, connection) {
   let id = req.params.id;
-  if (id == undefined) {
-    res.send('Invalid id');
+  const checkId = utils.checkId(id);
+  if (!checkId.ok) {
+      res.status(checkId.error.status);
+      res.send(checkId.error);
+      return;
   }
 
-  if (isNaN(id)) {
-    res.send('Invalid id');
+  const db = await connection;
+  let bookDAO = new AuthBookSQLiteDAO(db);
+  let result = await bookDAO.delete(id);
+
+  if (result == undefined) {
+      const error = { error: "Book not found to delete", status: 404 };
+      res.status(404);
+      res.send(error);
+      return;
   }
 
-  const db = await conection
-  let authbookDAO = new AuthBookSQLiteDAO(db);
-  let result = await authbookDAO.delete(id);
-
-  if (result == "Invalid id") {
-    res.status(400);
-    res.send("Invalid id");
-  } else {
-    res.status(200);
-    res.send("YOU Have deleted this:" + result);
-  }
+  res.status(200);
+  res.send(result);
 }
 
 //===================================================================================================

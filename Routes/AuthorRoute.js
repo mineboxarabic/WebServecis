@@ -1,104 +1,88 @@
 import { AuthorSQLiteDAO } from "../repositories/AuthorSQLiteDAO.js";
 import { Author } from "../Models/Author.js";
+import * as utils from "../Utils/Utils.js";
 
-
-export async function createAuthor(req, res, conection) {
+export async function createAuthor(req, res, connection) {
   let authorBody = req.body;
-
-  authorBody = JSON.parse(JSON.stringify(authorBody));
-
-  if (
-    authorBody.name == undefined ||
-    authorBody.date == undefined ||
-    authorBody.rate == undefined
-  ) {
-    res.status(400);
-    const error = { error: "Invalid user", status: 400 };
-    res.send(error);
+  const checkAttributes = utils.checkAttributes(authorBody);
+  if (!checkAttributes.ok) {
+      res.status(checkAttributes.error.status);
+      res.send(checkAttributes.error);
+      return;
   }
+
   let author = new Author(authorBody.name, authorBody.date, authorBody.rate);
-  const db = await conection;
+  const db = await connection;
   let authorDAO = new AuthorSQLiteDAO(db);
   let result = await authorDAO.create(author);
   res.status(201);
+  
   res.send(result);
 }
 
-export async function readAuthor(req, res, conection) {
+export async function readAuthor(req, res, connection) {
   let id = req.params.id;
-
-  if (id == undefined) {
-    const error = { error: "Invalid id", status: 400 };
-    res.send(error);
+  const checkId = utils.checkId(id);
+  if (!checkId.ok) {
+      res.status(checkId.error.status);
+      res.send(checkId.error);
+      return;
   }
 
-  if (isNaN(id)) {
-    const error = { error: "Id is not a number", status: 400 };
-    res.send(error);
-  }
-
-  const db = await conection;
+  const db = await connection;
   let authorDAO = new AuthorSQLiteDAO(db);
   let result = await authorDAO.read(id);
-  res.status(200);
-  res.send(result);
+  res.status(200);res.send(result);
 }
 
-export async function updateAuthor(req, res, conection) {
+export async function updateAuthor(req, res, connection) {
   let id = req.params.id;
   let authorBody = req.body;
-  authorBody = JSON.parse(JSON.stringify(authorBody));
-
-  if (id == undefined) {
-    res.status(400);
-    res.send("Invalid id");
+  
+  const checkId = utils.checkId(id);
+  if (!checkId.ok) {
+      res.status(checkId.error.status);res.send(checkId.error);
+      return;
   }
 
-  if (isNaN(id)) {
-    res.status(400);
-    res.send("Invalid id");
-  }
-
-  if (
-    authorBody.name == undefined ||
-    authorBody.date == undefined ||
-    authorBody.rate == undefined
-  ) {
-    res.status(400);
-    res.send("Invalid author");
+  const checkAttributes = utils.checkAttributes(authorBody);
+  if (!checkAttributes.ok) {
+      res.status(checkAttributes.error.status);
+      res.send(checkAttributes.error);
+      return;
   }
 
   let author = new Author(authorBody.name, authorBody.date, authorBody.rate);
-  const db = await conection;
+  const db = await connection;
   let authorDAO = new AuthorSQLiteDAO(db);
   let result = await authorDAO.update(author, id);
   res.status(200);
-  res.send("You have updated : \n" + result);
+  res.send(result);
 }
 
-export async function deleteAuthor(req, res, conection) {
+export async function deleteAuthor(req, res, connection) {
   let id = req.params.id;
-  if (id == undefined) {
-    res.send("Invalid id");
+  const checkId = utils.checkId(id);
+  if (!checkId.ok) {
+      res.status(checkId.error.status);
+      res.send(checkId.error);
+      return;
   }
 
-  if (isNaN(id)) {
-    res.send("Invalid id");
-  }
-
-  const db = await conection;
+  const db = await connection;
   let authorDAO = new AuthorSQLiteDAO(db);
   let result = await authorDAO.delete(id);
 
-  if (result == "Invalid id") {
-    res.status(400);
-    res.send("Invalid id");
-  } else {
-    res.status(200);
-    res.send("YOU Have deleted this:" + result);
+  if (result == undefined) {
+      const error = { error: "Author not found to delete", status: 404 };
+      res.status(404);
+      res.send(error);
+      return;
   }
-}
 
+  res.status(200);
+  res.send(result);
+}
 
 //===============================================================
 

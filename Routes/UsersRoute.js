@@ -1,12 +1,14 @@
 import { UserSQLiteDAO } from "../repositories/UserSQLiteDAO.js";
 import { User } from "../Models/User.js";
 import bcrypt from "bcrypt";
-
+import jwt from 'jsonwebtoken';
 import * as utils from "../Utils/Utils.js";
+import 'dotenv/config';
+//Import the .env file
 
 //We need to check the id in each route
 //We need to check the body in each route
-
+let refreshTokens = [];
 export async function createUser(req, res, conection) {
     let userBody = req.body;
 
@@ -96,7 +98,7 @@ export async function deleteUser(req, res, conection) {
 
 }
 
-
+//===================================================================================================
 
 export async function readUsers(req, res, conection) {
     const db = await conection;
@@ -132,7 +134,7 @@ export async function login(req, res, conection) {
     //In this case we need to use readByEmail because we need to take the password from the database
     let user = await readByEmail(conection, userBody.email);
     if (user == undefined) {
-        const error = { error: "User not found to login", status: 404};
+        const error = { error: "User not found to login", status: 404, user: user};
         res.status(error.status);
         res.send(error);
         return;
@@ -147,9 +149,12 @@ export async function login(req, res, conection) {
         res.send(error);
         return;
     }
+    const accessToken = generateAccessToken({name: user.name, email: user.email, role: user.role});
+    const refreshToken = jwt.sign({name: user.name, email: user.email, role: user.role}, process.env.REFRESH_TOKEN_SECRET);
+    refreshTokens.push(refreshToken);
 
     res.status(200);
-    res.send(userBody);
+    res.send({ accessToken: accessToken,refreshToken: refreshToken});
 };
 
 export async function register(req, res, conection) {
@@ -168,6 +173,23 @@ export async function register(req, res, conection) {
     return;
 }
 
+
+async function readByEmail(conection,email){
+    const db = await conection;
+    const userDAO = new UserSQLiteDAO(db);
+    return userDAO.readByEmail(email);
+}
+
+async function isUserExist(conection,email){
+    const userCheck = await readByEmail(conection, email);
+    if(userCheck != undefined){
+        const error = { error: "User already exists", status: 409, ok:false};
+        return error;
+    }
+    return {ok:true}
+}
+
+
 export async function createRoutes(app, conection) {
     app.post("/user", async (req, res) => {
         await createUser(req, res, conection);
@@ -177,7 +199,7 @@ export async function createRoutes(app, conection) {
         await readUser(req, res, conection);
     });
 
-    app.get("/users", async (req, res) => {
+    app.get("/users",authenticateToken,async (req, res) => {
         await readUsers(req, res, conection);
     });
 
@@ -198,19 +220,46 @@ export async function createRoutes(app, conection) {
         await register(req, res, conection);
     });
 
+    app.post("/token", async (req, res) => {
+        const refreshToken = req.body.token;
+        if(refreshToken == null){
+            return res.sendStatus(401);
+        }
+        if(!refreshTokens.includes(refreshToken)){
+            return res.sendStatus(403);
+        }
+
+
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+            if(err){
+                return res.sendStatus(403);
+            }
+            console.log("The refresh token: " + refreshToken , "size: " + refreshTokens.length);
+            const accessToken =  generateAccessToken({name: user.name, email: user.email, role: user.role});
+            res.json({accessToken: accessToken});
+        })
+    });
+
 }
 
-async function readByEmail(conection,email){
-    const db = await conection;
-    const userDAO = new UserSQLiteDAO(db);
-    return userDAO.readByEmail(email);
-}
+function authenticateToken(req, res, next){
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
 
-async function isUserExist(conection,email){
-    const userCheck = await readByEmail(conection, email);
-    if(userCheck != undefined){
-        const error = { error: "User already exists", status: 409, ok:false};
-        return error;
+    if(token == null){
+        return res.sendStatus(401);
     }
-    return {ok:true}
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if(err){
+            return res.sendStatus(403);
+        }
+        req.user = user;
+        next();
+    })
+}
+
+function generateAccessToken(user){
+    if (!user) throw new Error("User data is required for token generation");
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'});
 }
