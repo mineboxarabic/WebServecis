@@ -1,0 +1,1 @@
+export const _LINK = 'http://localhost:3001/'

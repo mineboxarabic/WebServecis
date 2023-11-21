@@ -9,10 +9,47 @@ import 'dotenv/config';
 //We need to check the id in each route
 //We need to check the body in each route
 let refreshTokens = [];
+
 export async function createUser(req, res, conection) {
     let userBody = req.body;
-
+    console.log(req.body);
     const check = utils.checkAttributes(userBody);
+
+    //Check if there is empty string
+    //Check email 
+    
+    let isEmailGood = userBody.email.includes("@");
+    console.log(isEmailGood)
+    if(isEmailGood == false){
+        res.status(400);
+        res.send({error: "Email is not valid", status: 400});
+        return;
+    }
+
+    //CHeck for special  characters in name or email or password
+    let isNameGood = utils.checkForSpecialCharacters(userBody.name);    
+    let isPasswordGood = utils.checkForSpecialCharacters(userBody.password);
+    let isEmailGood2 = utils.checkForSpecialCharacters(userBody.email);
+
+    if(isNameGood.ok == false ){
+        res.status(isNameGood.status);
+        res.send("Name is not valid or has special characters");
+        return;
+    }
+    if(isPasswordGood.ok == false ){
+        res.status(isPasswordGood.status);
+        res.send("Password is not valid or has special characters");
+        return;
+    }
+
+    if(isEmailGood2.ok == false ){
+        res.status(isEmailGood2.status);
+        res.send("Email is not valid or has special characters");
+        return;
+    }
+
+
+
     if (check.ok == false) {
         res.status(check.status);
         res.send(check.error);
@@ -21,7 +58,7 @@ export async function createUser(req, res, conection) {
 
     const userCheck = await isUserExist(conection, userBody.email);
     if(userCheck.ok == false){
-        res.status(userCheck.error.status)
+        res.status(userCheck.status)
         res.send(userCheck.error);
         return;
     }
@@ -181,6 +218,7 @@ async function readByEmail(conection,email){
 }
 
 async function isUserExist(conection,email){
+
     const userCheck = await readByEmail(conection, email);
     if(userCheck != undefined){
         const error = { error: "User already exists", status: 409, ok:false};
