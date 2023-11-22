@@ -22,7 +22,8 @@ export async function createUser(req, res, conection) {
     console.log(isEmailGood)
     if(isEmailGood == false){
         res.status(400);
-        res.send({error: "Email is not valid", status: 400});
+        res.send({error: "Email is not valid", status: 400, ok:false});
+        console.log("Email is not valid")
         return;
     }
 
@@ -33,26 +34,25 @@ export async function createUser(req, res, conection) {
 
     if(isNameGood.ok == false ){
         res.status(isNameGood.status);
-        res.send("Name is not valid or has special characters");
+    
+        res.send({error: "Name is not valid or has special characters", status: 400, ok:false});
+        console.log("Name is not valid or has special characters")
         return;
     }
     if(isPasswordGood.ok == false ){
         res.status(isPasswordGood.status);
-        res.send("Password is not valid or has special characters");
+
+        res.send({error: "Password is not valid or has special characters", status: 400, ok:false});
+
         return;
     }
 
-    if(isEmailGood2.ok == false ){
-        res.status(isEmailGood2.status);
-        res.send("Email is not valid or has special characters");
-        return;
-    }
 
 
 
     if (check.ok == false) {
         res.status(check.status);
-        res.send(check.error);
+        res.send(check);
         return;
     }
 
@@ -98,26 +98,38 @@ export async function updateUser(req, res, conection) {
         return utils.checkId(id);
     }
     if (utils.checkAttributes(userBody).ok == false) {
-        const error = { error: "User not found to update", status: 404};
+    console.log(userBody);
+
+        const error = { error: "User not found to update", status: 404, ok:false};
         res.status(404);
         res.send(error);
         return;
     }
-    if (userBody.role == undefined) {
-        userBody.role = "user";
+    if (userBody.role == undefined ) {
+        userBody.role = 0;
     }
+
+
 
     const db = await conection;
     let userDAO = new UserSQLiteDAO(db);
     let result = await userDAO.update(userBody, id);
+
+    //Unhashed password
+    let password = userBody.password;
+    //Unhashing the password using the env.
+    let unHashedPassword = await bcrypt.hash(password, 10);
+
+
     res.status(200);
-    res.send("You have updated : \n" + result);
+    res.send(result);
 }
 
 export async function deleteUser(req, res, conection) {
     let id = req.params.id;
     if(utils.checkId(id).ok == false){
         res.status(400);
+        res.send(utils.checkId(id));
         return utils.checkId(id);
     }
     const db = await conection;
@@ -125,7 +137,7 @@ export async function deleteUser(req, res, conection) {
     let result = await userDAO.delete(id);
 
     if (result == undefined) {
-        const error = { error: "User not found to delete", status: 404};
+        const error = { error: "User not found to delete", status: 40, ok:false};
         res.status(404);
         res.send(error);
         return;
@@ -171,7 +183,7 @@ export async function login(req, res, conection) {
     //In this case we need to use readByEmail because we need to take the password from the database
     let user = await readByEmail(conection, userBody.email);
     if (user == undefined) {
-        const error = { error: "User not found to login", status: 404, user: user};
+        const error = { error: "User not found to login", status: 404, user: user, ok:false};
         res.status(error.status);
         res.send(error);
         return;
@@ -180,7 +192,7 @@ export async function login(req, res, conection) {
     let resultComp = await bcrypt.compare(userBody.password, password);
 
     if (resultComp == false) {
-        const error = { error: "Password not valid", status: 400};
+        const error = { error: "Password not valid", status: 400, ok:false};
         userBody.password = password;
         res.status(error.status);
         res.send(error);
@@ -241,7 +253,7 @@ export async function createRoutes(app, conection) {
         await readUsers(req, res, conection);
     });
 
-    app.put("/use/:id", async (req, res) => {
+    app.put("/user/:id", async (req, res) => {
         await updateUser(req, res, conection);
     });
 

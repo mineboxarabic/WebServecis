@@ -18,7 +18,7 @@ return(
           <Nav.Link href="home">Home</Nav.Link>
         
           <NavDropdown title="CRUD" id="basic-nav-dropdown">
-            <NavDropdown.Item href="#action/3.1">Books</NavDropdown.Item>
+            <NavDropdown.Item href="books">Books</NavDropdown.Item>
             <NavDropdown.Item href="users">Users</NavDropdown.Item>
             <NavDropdown.Item href="#action/3.3">Authos</NavDropdown.Item>
             <NavDropdown.Divider />

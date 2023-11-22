@@ -12,7 +12,7 @@ export async function createBook(req, res,conection){
 
     const checkAttributes = utils.checkAttributes(bookBody);
     if(checkAttributes.ok == false){
-        res.status(checkAttributes.error.status);
+        res.status(checkAttributes.status);
         res.send(error);
         return;
     }
@@ -36,7 +36,7 @@ export async function readBook(req, res,conection){
  
     const checkId = utils.checkId(id);
     if(checkId.ok == false){
-        res.status(checkId.error.status);
+        res.status(checkId.status);
         res.send(checkId.error);
         return;
     }
@@ -87,8 +87,8 @@ export async function deleteBook(req, res,conection){
 
     const checkId = utils.checkId(id);
     if(checkId.ok == false){
-        res.status(checkId.error.status);
-        res.send(checkId.error);
+        res.status(checkId.status);
+        res.send(checkId);
         return;
     }
 
@@ -98,7 +98,7 @@ export async function deleteBook(req, res,conection){
     
 
     if(result == undefined){
-        const error = { error: "Book not found to delete", status: 404};
+        const error = { error: "Book not found to delete", status: 404, ok:false};
         res.status(error.status);
         res.send(error);
         return;
@@ -118,7 +118,7 @@ export async function readBooks(req, res,conection){
     let result = await bookDAO.readAll();
 
     if(result.length == 0){
-        const error = { error: "There are no books", status: 404};
+        const error = { error: "There are no books", status: 404, ok:false};
         res.status(404);
         res.send(error);
     }
@@ -145,12 +145,12 @@ export async function createRoutes(app, conection){
       createBook(req, res,conection);
     });
     
-    app.delete('/books/(:id)', authenticateToken,(req, res) => {
+    app.delete('/books/(:id)',(req, res) => {
       deleteBook(req, res,conection);
     }
     )
     
-    app.put('/books/(:id)', authenticateToken,(req, res) => {
+    app.put('/books/(:id)',(req, res) => {
       updateBook(req, res,conection);
     }
   )
