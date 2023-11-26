@@ -8,6 +8,8 @@ import { Header } from './Components/HEADER';
 import { Footer2 } from './Components/FOOTER';
 import UsersCRUD from './pages/UsersCRUD';
 import BooksCRUD from './pages/BooksCRUD';
+import AuthorCRUD from './pages/AuthorCRUD';
+import { LogInPage } from './pages/LogInPage';
 function App() {
 
 
@@ -20,6 +22,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/users" element={<UsersCRUD />} />
         <Route path="/books" element={<BooksCRUD />} />
+        <Route path="/authors" element={<AuthorCRUD />} />
     
        </Routes>
        <Footer2/>

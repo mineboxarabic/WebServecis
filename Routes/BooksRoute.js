@@ -9,11 +9,11 @@ import jwt from 'jsonwebtoken'
 
 export async function createBook(req, res,conection){
     let bookBody = req.body;
-
+    console.log(bookBody);
     const checkAttributes = utils.checkAttributes(bookBody);
     if(checkAttributes.ok == false){
         res.status(checkAttributes.status);
-        res.send(error);
+        res.send(checkAttributes);
         return;
     }
 
@@ -22,7 +22,7 @@ export async function createBook(req, res,conection){
 
  
 
-    let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+    let book = new Book(bookBody.title, bookBody.date, bookBody.author_id, bookBody.rated);
     const db = await conection;
     let bookDAO = new BookSQLiteDAO(db);
     let result = await bookDAO.create(book);

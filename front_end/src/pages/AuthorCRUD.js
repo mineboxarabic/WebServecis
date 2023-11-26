@@ -5,79 +5,64 @@ import "../styles/Tables.scss";
 
 function MyModal(props) {
   const handleClose = () => props.setShow(false);
-  const [bookData, setBookData] = useState({
-    title: "",
+  const [authorData, setAuthorData] = useState({
+    name: "",
     date: "",
-    rated: 0,
-    author_id: null,
+    rate: 0
   });
 
   function getDate() {
-    let date = new Date(props.bookData.date);
+    let date = new Date(props.authorData.date);
     let day = date.getDate();
     let month = date.getMonth() + 1;
     let year = date.getFullYear();
     return year + "-" + month + "-" + day;
   }
   useEffect(() => {
-    if (props.isEdit) setBookData(props.bookData);
-  }, [props.bookData]);
+    if (props.isEdit) setAuthorData(props.authorData);
+  }, [props.authorData]);
 
   return (
     <Modal show={props.show} onHide={handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title>{props.isEdit ? "Edit Book" : "Add Book"}</Modal.Title>
+        <Modal.Title>{props.isEdit ? "Edit Author" : "Add Author"}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Alert variant="danger" show={props.validated.error}>
           {props.validated.message}
         </Alert>
         <Form>
-          <Form.Group controlId="formBookTitle">
-            <Form.Label>Title</Form.Label>
+          <Form.Group controlId="formAuthorName">
+            <Form.Label>Name</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter book title"
-              value={props.bookData.title}
+              placeholder="Enter author name"
+              value={props.authorData.name}
               onChange={(e) =>
-                props.setBookData({ ...props.bookData, title: e.target.value })
+                props.setAuthorData({ ...props.authorData, name: e.target.value })
               }
             />
           </Form.Group>
-          <Form.Group controlId="formBookDate">
+          <Form.Group controlId="formAuthorDate">
             <Form.Label>Date</Form.Label>
             <Form.Control
               type="date"
               defaultValue={getDate()}
               onChange={(e) =>
-                props.setBookData({ ...props.bookData, date: e.target.value })
+                props.setAuthorData({ ...props.authorData, date: e.target.value })
               }
             />
           </Form.Group>
-          <Form.Group controlId="formBookRated">
+          <Form.Group controlId="formAuthorRate">
             <Form.Label>Rating</Form.Label>
             <Form.Control
               type="number"
               placeholder="Rating"
               max={5}
               min={0}
-              value={props.bookData.rated}
+              value={props.authorData.rate}
               onChange={(e) =>
-                props.setBookData({ ...props.bookData, rated: e.target.value })
-              }
-            />
-          </Form.Group>
-          <Form.Group controlId="formBookAuthorId">
-            <Form.Label>Author ID</Form.Label>
-            <Form.Control
-              type="number"
-              placeholder="Author ID"
-              value={props.bookData.author_id}
-              onChange={(e) =>
-                props.setBookData({
-                  ...props.bookData,
-                  author_id: e.target.value,
-                })
+                props.setAuthorData({ ...props.authorData, rate: e.target.value })
               }
             />
           </Form.Group>
@@ -89,7 +74,7 @@ function MyModal(props) {
         </Button>
         <Button
           variant="primary"
-          onClick={() => props.handleSave(props.bookData)}
+          onClick={() => props.handleSave(props.authorData)}
         >
           Save Changes
         </Button>
@@ -104,11 +89,11 @@ function DeleteModal(props) {
   return (
     <Modal show={props.show} onHide={handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title>Delete Book</Modal.Title>
+        <Modal.Title>Delete Author</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Alert variant="danger">
-          Are you sure you want to delete this book?
+          Are you sure you want to delete this author?
         </Alert>
       </Modal.Body>
       <Modal.Footer>
@@ -117,7 +102,7 @@ function DeleteModal(props) {
         </Button>
         <Button
           variant="danger"
-          onClick={() => props.handleDelete(props.bookData.id)}
+          onClick={() => props.handleDelete(props.authorData.id)}
         >
           Yes
         </Button>
@@ -126,22 +111,21 @@ function DeleteModal(props) {
   );
 }
 
-function BooksCRUD() {
-  const [books, setBooks] = useState([]);
+function AuthorsCRUD() {
+  const [authors, setAuthors] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [bookData, setBookData] = useState({
-    title: "",
+  const [authorData, setAuthorData] = useState({
+    name: "",
     date: "",
-    rated: 0,
-    author_id: null,
+    rate: 0
   });
   const [alert, setAlert] = useState({ show: false, message: "" });
   const [validated, setValidated] = useState({ error: false, message: "" });
 
-  async function getBooks() {
-    const faetchData = await fetch(_LINK + "books")
+  async function getAuthors() {
+    const faetchData = await fetch(_LINK + "authors")
       .then((response) => {
         if (!response.ok) {
           return Promise.reject(response);
@@ -152,7 +136,7 @@ function BooksCRUD() {
       })
       .then((data) => {
         console.log(data);
-        setBooks(data);
+        setAuthors(data);
       })
       .catch((error) => {
         console.log(error);
@@ -161,30 +145,31 @@ function BooksCRUD() {
 
     return faetchData;
   }
-  // Fetch books data from server
+  // Fetch authors data from server
   useEffect(() => {
-    // TODO: Fetch books from API
+    // TODO: Fetch authors from API
     //TODO: add the ok=false to the fetchs
     //TODO: add the error handling to the fetchs
     //TODO: add the min and max for the rating
     //TODO: reform the date to the format of the date
     //TODO: fix the autor_id
-    getBooks();
+    getAuthors();
   }, []);
 
-  const handleAdd = async (book) => {
-    // TODO: Add book logic
+  const handleAdd = async (author) => {
+    // TODO: Add author logic
     let newDate;
-    if (book.date) {
-      newDate = new Date(book.date);
-      book.date = newDate.toISOString().slice(0, 10);
+    if (author.date) {
+      newDate = new Date(author.date);
+      author.date = newDate.toISOString().slice(0, 10);
     }
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(book),
+      body: JSON.stringify(author),
     };
-    await fetch(_LINK + "books", requestOptions)
+
+    await fetch(_LINK + "authors", requestOptions)
       .then((response) => {
         if (!response.ok) {
           return Promise.reject(response);
@@ -194,37 +179,38 @@ function BooksCRUD() {
       })
       .then((data) => {
         console.log(data);
-        getBooks();
+        getAuthors();
         setShowModal(false);
         setValidated({ error: false, message: "" });
-        setAlert({ show: true, message: "Book added successfully" });
+        setAlert({ show: true, message: "Author added successfully" });
+
+
       })
       .catch(async (error) => {
         console.log(error);
-        await error.json().then((data) => {
-          console.log(data);
-          setValidated({ error: true, message: "Error: " + data.error });
-        });
+        const errorMessage = await error.json();
+        setValidated({ error: true, message: errorMessage.error });
+      
       });
   };
 
-  const handleEdit = (book) => {
-    // TODO: Edit book logic
-    console.log(book);
-    const newDate = new Date(book.date);
-    book.date = newDate.toISOString().slice(0, 10);
+  const handleEdit = (author) => {
+    // TODO: Edit author logic
+    console.log(author);
+    const newDate = new Date(author.date);
+    author.date = newDate.toISOString().slice(0, 10);
     const requestOptions = {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(book),
+      body: JSON.stringify(author),
     };
 
-    fetch(_LINK + "books/" + book.id, requestOptions)
+    fetch(_LINK + "author/" + author.id, requestOptions)
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        getBooks();
-        setAlert({ show: true, message: "Book updated successfully" });
+        getAuthors();
+        setAlert({ show: true, message: "Author updated successfully" });
       });
 
     setShowModal(false);
@@ -232,12 +218,12 @@ function BooksCRUD() {
   };
 
   const handleDelete = (id) => {
-    fetch(_LINK + "books/" + id, { method: "DELETE" })
+    fetch(_LINK + "author/" + id, { method: "DELETE" })
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        getBooks();
-        setAlert({ show: true, message: "Book deleted successfully" });
+        getAuthors();
+        setAlert({ show: true, message: "Author deleted successfully" });
       });
     setShowDeleteModal(false);
   };
@@ -247,41 +233,39 @@ function BooksCRUD() {
       <Button
         variant="primary"
         onClick={() => {
-          setBookData({ title: "", date: "", rated: 0, author_id: null });
+          setAuthorData({ name: "", date: "", rate: 0 });
           setIsEdit(false);
           setShowModal(true);
         }}
       >
-        Add Book
+        Add Author
       </Button>
       <Table striped bordered hover>
         <thead>
           <tr>
             <th>ID</th>
-            <th>Title</th>
+            <th>Name</th>
             <th>Date</th>
             <th>Rating</th>
-            <th>Author ID</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {books &&
-            books.map((book) => (
-              <tr key={book.id}>
-                <td>{book.id}</td>
-                <td>{book.title}</td>
-                <td>{book.date}</td>
-                <td>{book.rated}</td>
-                <td>{book.author_id}</td>
+          {authors &&
+            authors.map((author) => (
+              <tr key={author.id}>
+                <td>{author.id}</td>
+                <td>{author.name}</td>
+                <td>{author.date}</td>
+                <td>{author.rate}</td>
                 <td>
                   <Button
                     variant="secondary"
                     onClick={() => {
                       setShowModal(true);
                       setIsEdit(true);
-                      setBookData(book);
-                      //handleEdit(book)
+                      setAuthorData(author);
+                      //handleEdit(author)
                     }}
                   >
                     Edit
@@ -290,9 +274,9 @@ function BooksCRUD() {
                     variant="danger"
                     onClick={() => {
                       setShowDeleteModal(true);
-                      setBookData(book);
+                      setAuthorData(author);
 
-                      //handleDelete(book.id)
+                      //handleDelete(author.id)
                     }}
                   >
                     Delete
@@ -306,8 +290,8 @@ function BooksCRUD() {
         show={showModal}
         setShow={setShowModal}
         isEdit={isEdit}
-        bookData={bookData}
-        setBookData={setBookData}
+        authorData={authorData}
+        setAuthorData={setAuthorData}
         handleSave={isEdit ? handleEdit : handleAdd}
         validated={validated}
         setValidated={setValidated}
@@ -315,7 +299,7 @@ function BooksCRUD() {
       <DeleteModal
         show={showDeleteModal}
         setShow={setShowDeleteModal}
-        bookData={bookData}
+        authorData={authorData}
         handleDelete={handleDelete}
       />
       <Toast
@@ -335,4 +319,4 @@ function BooksCRUD() {
   );
 }
 
-export default BooksCRUD;
+export default AuthorsCRUD;

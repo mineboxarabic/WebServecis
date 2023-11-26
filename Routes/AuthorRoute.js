@@ -5,9 +5,11 @@ import * as utils from "../Utils/Utils.js";
 export async function createAuthor(req, res, connection) {
   let authorBody = req.body;
   const checkAttributes = utils.checkAttributes(authorBody);
-  if (!checkAttributes.ok) {
-      res.status(checkAttributes.error.status);
-      res.send(checkAttributes.error);
+  console.log(authorBody);
+  if (!checkAttributes.ok || authorBody.name == '' || authorBody.date == '' || authorBody.rate == '') {
+    const error = { error: "Invalid author attributes, they are undefied or empty OR BOTH", ok: false, status: 400 };  
+    res.status(error.status);
+      res.send(error);
       return;
   }
 
@@ -24,8 +26,8 @@ export async function readAuthor(req, res, connection) {
   let id = req.params.id;
   const checkId = utils.checkId(id);
   if (!checkId.ok) {
-      res.status(checkId.error.status);
-      res.send(checkId.error);
+      res.status(checkId.status);
+      res.send(checkId);
       return;
   }
 
@@ -41,14 +43,14 @@ export async function updateAuthor(req, res, connection) {
   
   const checkId = utils.checkId(id);
   if (!checkId.ok) {
-      res.status(checkId.error.status);res.send(checkId.error);
+      res.status(checkId.status);res.send(checkId);
       return;
   }
 
   const checkAttributes = utils.checkAttributes(authorBody);
   if (!checkAttributes.ok) {
-      res.status(checkAttributes.error.status);
-      res.send(checkAttributes.error);
+      res.status(checkAttributes.status);
+      res.send(checkAttributes);
       return;
   }
 
@@ -64,8 +66,8 @@ export async function deleteAuthor(req, res, connection) {
   let id = req.params.id;
   const checkId = utils.checkId(id);
   if (!checkId.ok) {
-      res.status(checkId.error.status);
-      res.send(checkId.error);
+      res.status(checkId.status);
+      res.send(checkId);
       return;
   }
 
@@ -107,7 +109,7 @@ export async function getLastId(conection) {
   return parseInt(result["MAX(id)"]);
 }
 export async function createRoutes(app, conection) {
-  app.get("/authors/:id", (req, res) => {
+  app.get("/author/:id", (req, res) => {
     readAuthor(req, res, conection);
   });
 
@@ -119,11 +121,11 @@ export async function createRoutes(app, conection) {
     createAuthor(req, res, conection);
   });
 
-  app.delete("/authors/:id", (req, res) => {
+  app.delete("/author/:id", (req, res) => {
     deleteAuthor(req, res, conection);
   });
 
-  app.put("/authors/:id", (req, res) => {
+  app.put("/author/:id", (req, res) => {
     updateAuthor(req, res, conection);
   });
 }
