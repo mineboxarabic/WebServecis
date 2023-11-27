@@ -2,13 +2,16 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/registerPage.scss';
 import { useState } from 'react';
-import { Header } from '../Components/HEADER';
+import { Table, Button, Form, Modal, Alert, Toast } from "react-bootstrap";
 
 
-export default function RegisterPage(){
+
+
+export default function LogInPage(){
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [alert, setAlert] = useState({ show: false, message: "" });
     async function submit(e){
         e.preventDefault();
         let user = {
@@ -17,7 +20,7 @@ export default function RegisterPage(){
             password : password
         }
 
-        await fetch("http://localhost:3001/register", {
+        await fetch("http://localhost:3001/login", {
             method: 'POST', // or 'PUT'
             headers: {
             'Content-Type': 'application/json',
@@ -29,12 +32,20 @@ export default function RegisterPage(){
 
     return(
        
-    <div className='register-page'>
-         <Header/>
+    <div className='login-page'>
+       
          
         <div className='floating-container'>
-       
-
+        <Toast
+                onClose={() => setAlert({ ...alert, show: false })}
+                show={alert.show}
+                delay={3000}
+                autohide
+                bg="danger"
+            >
+               
+                <Toast.Body>{alert.message}</Toast.Body>
+            </Toast>
             <form>
                 <div className="form-group">
                     <label htmlFor="exampleInputEmail1">Email address</label>
@@ -64,7 +75,7 @@ export default function RegisterPage(){
                         password : password
                     }
 
-                    const response = await fetch("http://localhost:3001/register", {
+                    const response = await fetch("http://localhost:3001/login", {
                         method: 'POST', // or 'PUT'
                         headers: {
                         'Content-Type': 'application/json',
@@ -72,10 +83,17 @@ export default function RegisterPage(){
                         body: JSON.stringify(user),
                     });
                     const data = await response.json();
-                    console.log(data);
+                    if(data.error){
+                        setAlert({show:true, message: data.error});
+                    }
+
+                    else{
+                        setAlert({show:true, message: "Logged in successfully"});
+                    }
 
                 }} className="btn btn-primary">Submit</button>
             </form>
+     
         </div>
         </div>
     )

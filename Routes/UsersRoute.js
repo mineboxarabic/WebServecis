@@ -39,13 +39,7 @@ export async function createUser(req, res, conection) {
         console.log("Name is not valid or has special characters")
         return;
     }
-    if(isPasswordGood.ok == false ){
-        res.status(isPasswordGood.status);
 
-        res.send({error: "Password is not valid or has special characters", status: 400, ok:false});
-
-        return;
-    }
 
 
 

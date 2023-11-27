@@ -9,7 +9,7 @@ import { Footer2 } from './Components/FOOTER';
 import UsersCRUD from './pages/UsersCRUD';
 import BooksCRUD from './pages/BooksCRUD';
 import AuthorCRUD from './pages/AuthorCRUD';
-import { LogInPage } from './pages/LogInPage';
+import  LogInPage  from './pages/LogInPage';
 function App() {
 
 
@@ -23,6 +23,7 @@ function App() {
         <Route path="/users" element={<UsersCRUD />} />
         <Route path="/books" element={<BooksCRUD />} />
         <Route path="/authors" element={<AuthorCRUD />} />
+        <Route path="/login" element={<LogInPage />} />
     
        </Routes>
        <Footer2/>
