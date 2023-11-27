@@ -39,7 +39,13 @@ export async function createUser(req, res, conection) {
         console.log("Name is not valid or has special characters")
         return;
     }
+    if(isPasswordGood.ok == false ){
+        res.status(isPasswordGood.status);
 
+        res.send({error: "Password is not valid or has special characters", status: 400, ok:false});
+
+        return;
+    }
 
 
 
@@ -261,7 +267,7 @@ export async function createRoutes(app, conection) {
     });
 
     app.post("/register", async (req, res) => {
-        await register(req, res, conection);
+        await register(req, res, coanection);
     });
 
     app.post("/token", async (req, res) => {
