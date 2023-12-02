@@ -35,6 +35,7 @@ describe('Test for user creation',  () => {
     );
 }
 )
+
 describe('Test for user read',  () => {
     test('User read', async() => {
     let date = new Date();
@@ -55,6 +56,7 @@ describe('Test for user read',  () => {
     }
     );
 })
+
 describe('Test for user update',  () => {
     test('User updated', async() => {
     let date = new Date();
@@ -159,8 +161,8 @@ describe('Test for user Login',  () => {
     let req = {
 
             body: {
-                email: "test12@gmail.com23szzs",
-                password: "123456",
+                email: "mineboxarabic@gmail.com",
+                password: "123",
             }
         
     }
@@ -176,4 +178,79 @@ describe('Test for user Login',  () => {
     );
 })
 
+  
+test('Duplicate Email Registration', async() => {
+const email = "duplicate@example.com";
+// First registration attempt
+let req1 = {
+    body: {
+    name: "DuplicateEmailUser1",
+    email: email,
+    password: "ValidPassword123!"
+    }
+};
+
+// Second registration attempt with the same email
+let req2 = {
+    body: {
+    name: "DuplicateEmailUser2",
+    email: email,
+    password: "ValidPassword123!"
+    }
+};
+
+const res1 = {
+    text: "",
+    send: (input) => { res1.text = input; },
+    status: (input) => { res1.status = input; }
+};
+
+const res2 = {
+    text: "",
+    send: (input) => { res2.text = input; },
+    status: (input) => { res2.status = input; }
+};
+
+await userRoute.createUser(req1, res1, conection);
+await userRoute.createUser(req2, res2, conection);
+expect(res2.status).toBe(409); // Assuming 409 for conflict
+});
+
+
+
+test("User acces and authentication and authorization", async ()=>{
+
+    //Login then take the token and use it to access the users
+    let req = {
+
+        body: {
+            email: "mineboxarabic@gmail.com",
+            password: "123",
+        }
+
+    }
+
+    const res = {
+    text: "",
+    send: (input) => { res.text = input; },
+    status: (input) => { res.status = input; }
+    };
+    await userRoute.login(req, res, conection);
+    let token = res.text;
+    console.log("the token is", token);
+    let req2 = {
+        headers: {
+            authorization: token
+        }
+    }
+    const res2 = {
+    text: "",
+    send: (input) => { res2.text = input; },
+    status: (input) => { res2.status = input; }
+    };
+    await userRoute.readUsers(req2, res2, conection);
+    console.log("the users", res2.text);
+    expect(res2.status).toBe(200);
+    
+})  
 

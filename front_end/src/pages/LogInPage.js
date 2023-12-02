@@ -1,37 +1,28 @@
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/registerPage.scss';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Table, Button, Form, Modal, Alert, Toast } from "react-bootstrap";
 
+import { isLogged,UserTokenContext} from '../Components/context';
 
 
 
-export default function LogInPage(){
+export default function LogInPage(props){
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [alert, setAlert] = useState({ show: false, message: "" });
-    async function submit(e){
-        e.preventDefault();
-        let user = {
+    const {userToken, setUserToken} = useContext(UserTokenContext);
+    
+    useEffect(()=>{
+       console.log(localStorage.getItem('token') == null)
+    },[])
 
-            email : email,
-            password : password
-        }
-
-        await fetch("http://localhost:3001/login", {
-            method: 'POST', // or 'PUT'
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(user),
-        });
-
-    }
+  
 
     return(
-       
+        
     <div className='login-page'>
        
          
@@ -41,7 +32,7 @@ export default function LogInPage(){
                 show={alert.show}
                 delay={3000}
                 autohide
-                bg="danger"
+                bg={alert.bg}
             >
                
                 <Toast.Body>{alert.message}</Toast.Body>
@@ -80,15 +71,20 @@ export default function LogInPage(){
                         headers: {
                         'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(user),
+                        body: JSON.stringify(user)
                     });
-                    const data = await response.json();
-                    if(data.error){
-                        setAlert({show:true, message: data.error});
-                    }
 
+                    const data = await response.json();
+                    
+                    if(data.error){
+                        setAlert({show:true, message: data.error, bg:"danger"});
+                    }
                     else{
-                        setAlert({show:true, message: "Logged in successfully"});
+                        console.log(isLogged);
+                        props.setIsLoggedIn(true);
+                        console.log(data);
+                        localStorage.setItem('token', data.accessToken);
+                        setAlert({show:true, message: "Logged in successfully", bg:"success"});
                     }
 
                 }} className="btn btn-primary">Submit</button>
