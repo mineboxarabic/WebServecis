@@ -6,14 +6,14 @@ import { Header } from '../Components/HEADER';
 import { Toast, ToastBody } from 'react-bootstrap';
 
 
-export default function RegisterPage(){
+export default function RegisterPage(props){
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
     const [error, setError] = useState({message:'', showError:false})
 
-    async function submit(e){
+    async function submitx(e){
         e.preventDefault();
         let user = {
             name : name,
@@ -22,21 +22,20 @@ export default function RegisterPage(){
         }
 
         await fetch("http://localhost:3001/register", {
-            method: 'POST', // or 'PUT'
+            method: 'POST',
             headers: {
             'Content-Type': 'application/json',
             },
             body: JSON.stringify(user),
         }).then(async (res)=>{
-            if(res.error){
-                throw Promise.reject(res.error);
-            }
-        }
-        ).catch(async (error)=>{
-            console.log(error); 
-            setError({message:error, showError:true});
-
+            if(res.ok){
+                window.location.href = '/login'
+            }else{
+                let error = await res.json();
+                setError({message:error.error, showError:true})
+            } 
         })
+
 
     }
 
@@ -44,12 +43,12 @@ export default function RegisterPage(){
        
     <div className='register-page'>
        
-         <Toast bg="danger" onClose={() => setError({message:'', showError:false})} show={error.showError} delay={3000} autohide>
-            <ToastBody>{error.message}</ToastBody>
-        </Toast>
+      
         <div className='floating-container'>
        
-
+            <Toast bg="danger" onClose={() => setError({message:'', showError:false})} show={error.showError} delay={3000} autohide>
+                <ToastBody>{error.message}</ToastBody>
+            </Toast>
             <form>
                 <div className="form-group">
                     <label htmlFor="exampleInputEmail1">Email address</label>
@@ -78,7 +77,10 @@ export default function RegisterPage(){
                     <input type="checkbox" className="form-check-input" id="save"/>
                     <label  className="form-check-label" htmlFor="save">Check me out</label>
                 </div>
-                <button onClick={ async (e)=>submit(e)} className="btn btn-primary">Submit</button>
+                <button onClick={(e)=>{
+                    e.preventDefault();
+                    submitx(e);
+                    }} className="btn btn-primary">Submit</button>
             </form>
         </div>
         </div>

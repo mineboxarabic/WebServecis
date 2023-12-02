@@ -29,8 +29,6 @@ export async function createUser(req, res, conection) {
 
     //CHeck for special  characters in name or email or password
     let isNameGood = utils.checkForSpecialCharacters(userBody.name);    
-    let isPasswordGood = utils.checkForSpecialCharacters(userBody.password);
-    let isEmailGood2 = utils.checkForSpecialCharacters(userBody.email);
 
     if(isNameGood.ok == false ){
         res.status(isNameGood.status);
@@ -39,27 +37,20 @@ export async function createUser(req, res, conection) {
         console.log("Name is not valid or has special characters")
         return;
     }
-    if(isPasswordGood.ok == false ){
-        res.status(isPasswordGood.status);
-
-        res.send({error: "Password is not valid or has special characters", status: 400, ok:false});
-
-        return;
-    }
-
 
 
 
     if (check.ok == false) {
         res.status(check.status);
         res.send(check);
+        console.log("check ofdksfj");
         return;
     }
 
     const userCheck = await isUserExist(conection, userBody.email);
     if(userCheck.ok == false){
         res.status(userCheck.status)
-        res.send(userCheck.error);
+        res.send(userCheck);
         return;
     }
 
@@ -71,6 +62,7 @@ export async function createUser(req, res, conection) {
     const db = await conection;
     let userDAO = new UserSQLiteDAO(db);
     let result = await userDAO.create(user);
+    console.log("goodxxx");
 
     res.status(201);
     res.send(result);
@@ -184,26 +176,32 @@ export async function login(req, res, conection) {
     let user = await readByEmail(conection, userBody.email);
     if (user == undefined) {
         const error = { error: "User not found to login", status: 404, user: user, ok:false};
+        
         res.status(error.status);
+        console.log(error.error);
         res.send(error);
         return;
     }
     let password = user.password;
     let resultComp = await bcrypt.compare(userBody.password, password);
+    console.log("Good");
 
     if (resultComp == false) {
         const error = { error: "Password not valid", status: 400, ok:false};
         userBody.password = password;
         res.status(error.status);
+        console.log(error.error);
         res.send(error);
         return;
     }
+    console.log("the logged in is", user);
     const accessToken = generateAccessToken({name: user.name, email: user.email, role: user.role});
-    const refreshToken = jwt.sign({name: user.name, email: user.email, role: user.role}, process.env.REFRESH_TOKEN_SECRET);
-    refreshTokens.push(refreshToken);
-
+    
+    
+   
+    console.log("good");
     res.status(200);
-    res.send({ accessToken: accessToken,refreshToken: refreshToken});
+    res.send({ accessToken: accessToken});
 };
 
 export async function register(req, res, conection) {
@@ -217,15 +215,18 @@ export async function register(req, res, conection) {
     //Hashing the password
     const salt = bcrypt.genSaltSync(10);
     userBody.password = await bcrypt.hash(userBody.password, salt);
-
     await createUser(req,res,conection);
     return;
 }
 
 
 async function readByEmail(conection,email){
+    console.log("Good");
+
     const db = await conection;
     const userDAO = new UserSQLiteDAO(db);
+    console.log("Good");
+
     return userDAO.readByEmail(email);
 }
 
@@ -245,29 +246,28 @@ export async function createRoutes(app, conection) {
         await createUser(req, res, conection);
     });
 
-    app.get("/user/:id", async (req, res) => {
+    app.get("/user/:id",authorizeUser, async (req, res) => {
         await readUser(req, res, conection);
     });
 
-    app.get("/users",async (req, res) => {
+    app.get("/users",authorizeUser,async (req, res) => {
         await readUsers(req, res, conection);
     });
 
-    app.put("/user/:id", async (req, res) => {
+    app.put("/user/:id",authorizeUser, async (req, res) => {
         await updateUser(req, res, conection);
     });
 
-    app.delete("/user/:id", async (req, res) => {
+    app.delete("/user/:id",authorizeUser, async (req, res) => {
         await deleteUser(req, res, conection);
     });
-
 
     app.post("/login", async (req, res) => {
         await login(req, res, conection);
     });
 
     app.post("/register", async (req, res) => {
-        await register(req, res, coanection);
+        await register(req, res, conection);
     });
 
     app.post("/token", async (req, res) => {
@@ -309,7 +309,29 @@ function authenticateToken(req, res, next){
     })
 }
 
+function authorizeUser(req, res, next){
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    if(token == null){
+        return res.sendStatus(401);
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if(err){
+            return res.sendStatus(403);
+        }
+        console.log("The user role is: " + JSON.stringify(user));
+        if(user.role != 1){
+            console.log("The user is not admin");
+            return res.sendStatus(403);
+        }
+        req.user = user;
+        next();
+    })
+}
+
 function generateAccessToken(user){
     if (!user) throw new Error("User data is required for token generation");
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'});
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
 }

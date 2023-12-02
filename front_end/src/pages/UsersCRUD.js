@@ -381,18 +381,33 @@ function Notification(props) {
   );
 }
 
-export default function UsersCRUD({ props }) {
+export default function UsersCRUD(props) {
   const [users, setUsers] = useState([]);
   const [show, setShow] = useState(false);
   const [showDeleteNotification, setShowDeleteNotification] = useState(false);
   const [showIsSureModal, setShowIsSureModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(0);
+
+
+  const userToken = localStorage.getItem("token") === null ? "" : localStorage.getItem("token");
+
   async function getUsers() {
     return await fetch("http://localhost:3001/users", {
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + userToken,
+      },
     }).then((data) => {
-      return data.json();
+      if(data.status == 401){
+        
+        console.log(userToken);
+
+      }else{
+        
+        return data.json();
+      }
     });
   }
   async function deleteUser() {
@@ -418,7 +433,7 @@ export default function UsersCRUD({ props }) {
         err.json().then((data) => {
           console.log(data);
           setShowIsSureModal(false);
-
+          
           setShowDeleteNotification(true);
         });
       });
@@ -466,6 +481,7 @@ export default function UsersCRUD({ props }) {
           </tr>
         </thead>
         <tbody>
+          {localStorage.getItem('token') !== null && <p>Sorry you are not authorized here !!</p>}
           {users &&
             users.map((user) => {
               return (

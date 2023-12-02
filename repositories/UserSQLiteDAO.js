@@ -78,7 +78,7 @@ export class UserSQLiteDAO extends UserDAO {
         if(user == undefined){
             return undefined;
         }
-        let userObject = new User(user.name, user.email, user.password);
+        let userObject = new User(user.name, user.email, user.password, user.role);
         userObject.setID(user.id);
         return userObject;
     }
