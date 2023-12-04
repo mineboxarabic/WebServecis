@@ -1,4 +1,5 @@
 import { UserDAO } from "../dataAccess/UserDAO.js";
+import UserDTO from "../DTO/User/UserDTO.js";
 import { User } from "../Models/User.js";
 
 export class UserSQLiteDAO extends UserDAO {
@@ -9,11 +10,32 @@ export class UserSQLiteDAO extends UserDAO {
     }
     
     async update(user, id) {
+
+
+        //Update only the fields are are given
+        let userDB = await this.read(id);
+        if(userDB == undefined){
+            return undefined;
+        }
+        if(user.name == undefined){
+            user.name = userDB.name;
+        }
+        if(user.email == undefined){
+            user.email = userDB.email;
+        }
+        if(user.password == undefined){
+            user.password = userDB.password;
+        }
+        if(user.role == undefined){
+            user.role = userDB.role;
+        }
         await this.db.run(
-        `UPDATE users SET name = '${user.name}', email = '${user.email}', password = '${user.password}', role = ${user.role} WHERE id = ${id}`
-        );
-        let newUser = await this.read(id);
-        return newUser;
+            `UPDATE users SET name = '${user.name}', email = '${user.email}', password = '${user.password}', role = ${user.role} WHERE id = ${id}`
+            );
+            let newUser = await this.read(id);
+            return newUser;
+
+
     }
     
     async delete(id) {
@@ -34,7 +56,6 @@ export class UserSQLiteDAO extends UserDAO {
         const request = await this.db.run(
         `INSERT INTO users (name, email, password, role) VALUES ('${user.name}', '${user.email}', '${user.password}', '${user.role}')`
         );
-        user.setID(request.lastID);
         return request;
     }
     
@@ -43,8 +64,8 @@ export class UserSQLiteDAO extends UserDAO {
         if (user == undefined) {
         return undefined;
         }
-        let userObject = new User(user.name, user.email, user.password);
-        userObject.setID(user.id);
+        let userObject = new UserDTO(user.name, user.email, user.password, user.role);
+        //userObject.setID(user.id);
         return userObject;
     }
     
@@ -68,8 +89,8 @@ export class UserSQLiteDAO extends UserDAO {
         if(userDB == undefined){
             return undefined;
         }
-        let userObject = new User(userDB.name, userDB.email, userDB.password);
-        userObject.setID(userDB.id);
+        let userObject = new UserDTO(userDB.name, userDB.email, userDB.password);
+       // userObject.setID(userDB.id);
         return userObject;
     }
 
@@ -78,9 +99,19 @@ export class UserSQLiteDAO extends UserDAO {
         if(user == undefined){
             return undefined;
         }
-        let userObject = new User(user.name, user.email, user.password, user.role);
-        userObject.setID(user.id);
+        let userObject = new UserDTO(user.name, user.email, user.password, user.role);
+        //userObject.setID(user.id);
         return userObject;
+    }
+
+    async findIdByEmail(email){
+        const id =  await this.db.get(`SELECT id FROM users WHERE email = '${email}'`);
+        if(id == undefined){
+            return undefined;
+        }
+
+        return id;
+
     }
 }
 

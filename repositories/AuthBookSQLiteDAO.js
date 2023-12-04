@@ -1,9 +1,11 @@
 
-import { Author } from '../Models/Author.js';
-import { AuthBookDAO } from '../dataAccess/AuthBookDAO.js'
-import { Book } from '../Models/Book.js';
-import { AuthBooks } from '../Models/AuthBooks.js';
 
+import { AuthBookDAO } from '../dataAccess/AuthBookDAO.js'
+
+import { AuthBookDTO } from '../DTO/AuthBook/AuthBookDTO.js';
+
+import { BookDTO } from '../DTO/Book/BookDTO.js';
+import { AuthorDTO } from '../DTO/Author/AuthorDTO.js';
 
 export class AuthBookSQLiteDAO extends AuthBookDAO {
   constructor(db) {
@@ -34,7 +36,7 @@ export class AuthBookSQLiteDAO extends AuthBookDAO {
     async create(authbook) {
         
     const reqest = await this.db.run(`INSERT INTO authbooks (book_id, author_id) VALUES ('${authbook.book}', '${authbook.author}')`);
-    authbook.setID(reqest.lastID);
+    //authbook.setID(reqest.lastID);
     return authbook;
     
     }
@@ -44,8 +46,8 @@ export class AuthBookSQLiteDAO extends AuthBookDAO {
         if(authbook == undefined){
             return undefined;
         }
-        let authbookObject = new AuthBooks(authbook.book_id, authbook.author_id);
-        authbookObject.setID(authbook.id);
+        let authbookObject = new AuthBookDTO(authbook.book_id, authbook.author_id);
+       // authbookObject.setID(authbook.id);
         return authbookObject;
     }
 

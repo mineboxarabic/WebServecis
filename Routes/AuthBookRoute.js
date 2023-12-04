@@ -2,20 +2,24 @@ import { AuthBookSQLiteDAO } from '../repositories/AuthBookSQLiteDAO.js';
 import { AuthBooks } from '../Models/AuthBooks.js';
 import { Book } from "../Models/Book.js";
 import * as utils from '../Utils/Utils.js'
+import { BookDTO } from '../DTO/Book/BookDTO.js';
+import { AuthBookDTO } from '../DTO/AuthBook/AuthBookDTO.js';
 
 
 export async function createAuthBook(req, res, connection) {
   let bookBody = req.body;
-  const checkAttributes = utils.checkAttributes(bookBody);
+  const authbook = new AuthBookDTO(bookBody.book, bookBody.author);
+  const checkAttributes = utils.checkAttributes(authbook);
+
   if (!checkAttributes.ok) {
-      res.status(checkAttributes.error.status);res.send(checkAttributes.error);
+      res.status(checkAttributes.status);res.send(checkAttributes);
       return;
   }
 
-  let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
   const db = await connection;
-  let bookDAO = new AuthBookSQLiteDAO(db);
-  let result = await bookDAO.create(book);
+  let authbookDAO = new AuthBookSQLiteDAO(db);
+  let result = await authbookDAO.create(authbook);
+
   res.status(201);
   res.send(result);
 }
@@ -24,7 +28,7 @@ export async function readAuthBook(req, res, connection) {
   let id = req.params.id;
   const checkId = utils.checkId(id);
   if (!checkId.ok) {
-      res.status(checkId.error.status);res.send(checkId.error);
+      res.status(checkId.status);res.send(checkId);
       return;
   }
 
@@ -37,40 +41,42 @@ export async function readAuthBook(req, res, connection) {
 
 export async function updateAuthBook(req, res, connection) {
   let id = req.params.id;
-  let bookBody = req.body;
+  let authBookBody = req.body;
+
+  const authBook = new AuthBookDTO(authBookBody.book, authBookBody.author);
   
   const checkId = utils.checkId(id);
   if (!checkId.ok) {
-      res.status(checkId.error.status);res.send(checkId.error);
+      res.status(checkId.status);res.send(checkId);
       return;
   }
 
-  const checkAttributes = utils.checkAttributes(bookBody);
+  const checkAttributes = utils.checkAttributes(authBook);
   if (!checkAttributes.ok) {
-      res.status(checkAttributes.error.status);res.send(checkAttributes.error);
+      res.status(checkAttributes.status);res.send(checkAttributes);
       return;
   }
 
-  let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
   const db = await connection;
-  let bookDAO = new AuthBookSQLiteDAO(db);
-  let result = await bookDAO.update(book, id);
+  let authBookDAO = new AuthBookSQLiteDAO(db);
+  let result = await authBookDAO.update(authBook, id);
   res.status(200);
   res.send(result);
 }
+
 
 export async function deleteAuthBook(req, res, connection) {
   let id = req.params.id;
   const checkId = utils.checkId(id);
   if (!checkId.ok) {
-      res.status(checkId.error.status);
-      res.send(checkId.error);
+      res.status(checkId.status);
+      res.send(checkId);
       return;
   }
 
   const db = await connection;
-  let bookDAO = new AuthBookSQLiteDAO(db);
-  let result = await bookDAO.delete(id);
+  let authBookDAO = new AuthBookSQLiteDAO(db);
+  let result = await authBookDAO.delete(id);
 
   if (result == undefined) {
       const error = { error: "Book not found to delete", status: 404 };

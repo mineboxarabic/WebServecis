@@ -1,19 +1,22 @@
 import { AuthorSQLiteDAO } from "../repositories/AuthorSQLiteDAO.js";
 import { Author } from "../Models/Author.js";
 import * as utils from "../Utils/Utils.js";
+import { AuthorDTO } from "../DTO/Author/AuthorDTO.js";
 
 export async function createAuthor(req, res, connection) {
   let authorBody = req.body;
+  const author = new AuthorDTO(authorBody.name, authorBody.date, authorBody.rate);
   const checkAttributes = utils.checkAttributes(authorBody);
-  console.log(authorBody);
-  if (!checkAttributes.ok || authorBody.name == '' || authorBody.date == '' || authorBody.rate == '') {
+
+
+
+  if (checkAttributes.ok == false) {
     const error = { error: "Invalid author attributes, they are undefied or empty OR BOTH", ok: false, status: 400 };  
-    res.status(error.status);
+      res.status(error.status);
       res.send(error);
       return;
   }
 
-  let author = new Author(authorBody.name, authorBody.date, authorBody.rate);
   const db = await connection;
   let authorDAO = new AuthorSQLiteDAO(db);
   let result = await authorDAO.create(author);
@@ -34,13 +37,16 @@ export async function readAuthor(req, res, connection) {
   const db = await connection;
   let authorDAO = new AuthorSQLiteDAO(db);
   let result = await authorDAO.read(id);
-  res.status(200);res.send(result);
+  res.status(200);
+  res.send(result);
 }
 
 export async function updateAuthor(req, res, connection) {
   let id = req.params.id;
   let authorBody = req.body;
   
+  const author = new AuthorDTO(authorBody.name, authorBody.date, authorBody.rate);
+
   const checkId = utils.checkId(id);
   if (!checkId.ok) {
       res.status(checkId.status);res.send(checkId);
@@ -54,10 +60,10 @@ export async function updateAuthor(req, res, connection) {
       return;
   }
 
-  let author = new Author(authorBody.name, authorBody.date, authorBody.rate);
   const db = await connection;
   let authorDAO = new AuthorSQLiteDAO(db);
   let result = await authorDAO.update(author, id);
+  
   res.status(200);
   res.send(result);
 }

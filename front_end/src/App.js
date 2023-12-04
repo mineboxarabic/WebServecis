@@ -10,33 +10,34 @@ import UsersCRUD from './pages/UsersCRUD';
 import BooksCRUD from './pages/BooksCRUD';
 import AuthorCRUD from './pages/AuthorCRUD';
 import  LogInPage  from './pages/LogInPage';
-import { createContext, useContext, useEffect } from 'react';
-import {useState} from 'react'
-import { UserTokenContext, isLogged} from './Components/context';
-
-function App() {
-const [isLoggedIn, setIsLoggedIn] = useState();
-const [userToken, setUserToken] = useState(localStorage.getItem('token') === null ? '' : localStorage.getItem('token'));
-
-
-useEffect(() => {
-
-  console.log("userToken", userToken);
+import useUserToken from './api/Context/useUserToken';
+import { useEffect } from 'react';
+function fetchProtectedData (){
 
 }
-,[])
+function App() {
+  const {token} = useUserToken();
+
+  useEffect(() => {
+    console.log(token);
+  }
+, [token]);
+
+
+
   return (
 
 
        <BrowserRouter>
-         <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}/>
+         <Header/>
        <Routes>
+        
        <Route exact path="/home" element={<Home />} />
         <Route path="/register" element={<RegisterPage/>}/>
         <Route path="/users" element={<UsersCRUD />} />
         <Route path="/books" element={<BooksCRUD />} />
         <Route path="/authors" element={<AuthorCRUD />} />
-        <Route path="/login" element={<LogInPage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn}/>} />
+        <Route path="/login" element={<LogInPage/>} />
     
        </Routes>
        <Footer2/>

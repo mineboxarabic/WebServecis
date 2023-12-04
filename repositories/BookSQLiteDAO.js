@@ -1,6 +1,6 @@
 
 import { BookDAO } from '../dataAccess/BooksDAO.js'
-import { Book } from '../Models/Book.js';
+import { BookDTO } from '../DTO/Book/BookDTO.js';
 
 
 export class BookSQLiteDAO extends BookDAO {
@@ -30,7 +30,7 @@ export class BookSQLiteDAO extends BookDAO {
 
     async create(book) {
         const request = await this.db.run(`INSERT INTO books (title, date, author_id, rated) VALUES ('${book.title}', '${book.date}', '${book.author}','${book.rated}')`);
-        book.setID(request.lastID);
+        //book.setID(request.lastID);
         return book;
     }
 
@@ -40,8 +40,8 @@ export class BookSQLiteDAO extends BookDAO {
         if (book == undefined) {
             return undefined;
         }
-        let bookObject = new Book(book.title, book.date, book.author_id, book.rated);
-        bookObject.setID(book.id);
+        let bookObject = new BookDTO(book.title, book.date, book.author_id, book.rated);
+       // bookObject.setID(book.id);
         return bookObject;
     }
 

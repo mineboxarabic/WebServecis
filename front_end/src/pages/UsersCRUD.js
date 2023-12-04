@@ -1,450 +1,196 @@
 import { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
 import { Alert, Button } from "react-bootstrap";
-import { _LINK } from "../linkServer";
+
 import "../styles/Tables.scss";
 
 import Form from "react-bootstrap/Form";
 import Modal from "react-bootstrap/Modal";
 import Toast from "react-bootstrap/Toast";
 
+
+import axios from "../api/mainAxios";
+import useUserToken from "../api/Context/useUserToken";
+import axiosMain, { checkAndRefreshToken } from "../api/mainAxios";
+
+
 function MyModal(props) {
-  //const [show, setShow] = useState(false);
-
   const handleClose = () => props.setShow(false);
-  const handleShow = () => props.setShow(true);
-
-  const [emails, setEmail] = useState("");
-  const [names, setName] = useState("");
-  const [roles, setRole] = useState(0);
-  const [passwords, setPassword] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
-
-  const [userError, setUserError] = useState({
-    error: "",
-    ok: false,
-    status: 400,
-    show: false,
+  const [bookData, setBookData] = useState({
+    title: "",
+    date: "",
+    rated: 0,
+    author_id: null,
   });
 
-  async function addUser() {
-    console.log(_LINK);
-
-    console.log({ emails, names, roles, passwords });
-    try {
-      await fetch(_LINK + "user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: emails,
-          name: names,
-          role: roles,
-          password: passwords,
-        }),
-      }).then(async (res) => {
-        if (!res.ok) {
-          return Promise.reject(res);
-        }
-        console.log(res);
-        setShowAlert(true);
-      });
-    } catch (err) {
-      console.log(err);
-      err.json().then((data) => {
-        console.log(data);
-        setUserError({
-          error: data.error,
-          ok: false,
-          status: err.status,
-          show: true,
-        });
-      });
-    }
+  function getDate() {
+    let date = new Date(props.bookData.date);
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    return year + "-" + month + "-" + day;
   }
-
-  return (
-    <>
-  
-
-      <Modal show={props.getShow} onHide={handleClose}>
-        <Alert show={showAlert} variant="success">
-          <Alert.Heading>User created successfully ! :)</Alert.Heading>
-        </Alert>
-
-        <Alert show={userError.show} variant="danger">
-          <Alert.Heading>{userError.error}</Alert.Heading>
-        </Alert>
-
-        <Modal.Header closeButton>
-          <Modal.Title>Modal heading</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="name@example.com"
-                autoFocus
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="name">
-              <Form.Label>name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Mohammed abdullah"
-                autoFocus
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="role">
-              <Form.Label>role</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="1"
-                max={1}
-                min={0}
-                autoFocus
-                onChange={(e) => {
-                  setRole(e.target.value);
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="password">
-              <Form.Label>password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="password"
-                autoFocus
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={addUser}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
-  );
-}
-
-function IsSureModal(props) {
-  //const [show, setShow] = useState(false);
-
-  const handleClose = () => props.setShow(false);
-  const handleShow = () => props.setShow(true);
-
-  function onYes() {
-    props.onYes();
-    handleClose();
-  }
-
-  return (
-    <>
-      <Modal show={props.getShow} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Are you you want do delete this User !</Modal.Title>
-        </Modal.Header>
-        <Modal.Body></Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              onYes();
-            }}
-          >
-            Yes
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
-  );
-}
-
-function EditUserModal(props) {
-  const handleClose = () => props.setShow(false);
-  const handleShow = () => props.setShow(true);
-
-  const [emails, setEmail] = useState(props.user.email);
-  const [names, setName] = useState(props.user.name);
-  const [roles, setRole] = useState(props.user.role);
-  const [passwords, setPassword] = useState(props.user.password);
-  const [showAlert, setShowAlert] = useState(false);
-
-  const [userError, setUserError] = useState({
-    error: "",
-    ok: false,
-    status: 400,
-    show: false,
-  });
-
   useEffect(() => {
-    console.log(props.user);
-    setEmail(props.user.email);
-    setName(props.user.name);
-    setRole(props.user.role);
-    setPassword(props.user.password);
-  }, [props.user]);
-
-  /*async function addUser(){
-      console.log(_LINK);
-
-      console.log({emails, names,roles, passwords})
-      try{
-
-        await fetch(_LINK+'user',{
-          "method": "POST",
-          "headers": {
-              "Content-Type": "application/json"
-          },
-          "body": JSON.stringify({email:emails, name:names, role:roles, password:passwords})
-      }).then(async (res)=>{
-
-        if(!res.ok){
-          return Promise.reject(res);
-        }
-          console.log(res);
-          setShowAlert(true);
-      })
-      } catch(err){
-        console.log(err);
-        err.json().then((data)=>{
-          console.log(data);
-          setUserError({error:data.error, ok:false, status:err.status, show:true});
-        })
-      }
-  }*/
-  async function editUser() {
-    console.log(_LINK);
-
-    console.log({ emails, names, roles, passwords });
-    try {
-      await fetch(_LINK + "user/" + props.user.id, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: emails,
-          name: names,
-          role: roles,
-          password: passwords,
-        }),
-      }).then(async (res) => {
-        if (!res.ok) {
-          return Promise.reject(res);
-        }
-        console.log(res);
-        setShowAlert(true);
-      });
-    } catch (err) {
-      console.log(err);
-      err.json().then((data) => {
-        console.log(data);
-        setUserError({
-          error: data.error,
-          ok: false,
-          status: err.status,
-          show: true,
-        });
-      });
-    }
-  }
+    if (props.isEdit) setBookData(props.bookData);
+  }, [props.bookData]);
 
   return (
-    <>
-
-      <Modal show={props.getShow} onHide={handleClose}>
-        <Alert show={showAlert} variant="success">
-          <Alert.Heading>User created successfully ! :)</Alert.Heading>
+    <Modal show={props.show} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>{props.isEdit ? "Edit Book" : "Add Book"}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Alert variant="danger" show={props.validated.error}>
+          {props.validated.message}
         </Alert>
-
-        <Alert show={userError.show} variant="danger">
-          <Alert.Heading>{userError.error}</Alert.Heading>
-        </Alert>
-
-        <Modal.Header closeButton>
-          <Modal.Title>Modal heading</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="name@example.com"
-                autoFocus
-                defaultValue={emails}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="name">
-              <Form.Label>name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Mohammed abdullah"
-                autoFocus
-                defaultValue={names}
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="role">
-              <Form.Label>role</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="1"
-                max={1}
-                min={0}
-                autoFocus
-                defaultValue={roles}
-                onChange={(e) => {
-                  setRole(e.target.value);
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="password">
-              <Form.Label>password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="password"
-                autoFocus
-                defaultValue={passwords}
-                disabled
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={editUser}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
+        <Form>
+          <Form.Group controlId="formBookTitle">
+            <Form.Label>Title</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter book title"
+              value={props.bookData.title}
+              onChange={(e) =>
+                props.setBookData({ ...props.bookData, title: e.target.value })
+              }
+            />
+          </Form.Group>
+          <Form.Group controlId="formBookDate">
+            <Form.Label>Date</Form.Label>
+            <Form.Control
+              type="date"
+              defaultValue={getDate()}
+              onChange={(e) =>
+                props.setBookData({ ...props.bookData, date: e.target.value })
+              }
+            />
+          </Form.Group>
+          <Form.Group controlId="formBookRated">
+            <Form.Label>Rating</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Rating"
+              max={5}
+              min={0}
+              value={props.bookData.rated}
+              onChange={(e) =>
+                props.setBookData({ ...props.bookData, rated: e.target.value })
+              }
+            />
+          </Form.Group>
+          <Form.Group controlId="formBookAuthorId">
+            <Form.Label>Author ID</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Author ID"
+              value={props.bookData.author_id}
+              onChange={(e) =>
+                props.setBookData({
+                  ...props.bookData,
+                  author_id: e.target.value,
+                })
+              }
+            />
+          </Form.Group>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleClose}>
+          Close
+        </Button>
+        <Button
+          variant="primary"
+          onClick={() => props.handleSave(props.bookData)}
+        >
+          Save Changes
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 }
 
-function Notification(props) {
-  const [show, setShow] = useState(props.show);
+function DeleteModal(props) {
+  const handleClose = () => props.setShow(false);
+
   return (
-    <Toast
-      bg={props.bg}
-      onClose={() => props.setShow(false)}
-      show={props.show}
-      delay={3000}
-      autohide
-      style={{
-        position: "absolute",
-        top: 20,
-        right: 20,
-      }}
-    >
-      <Toast.Header>
-        <strong className="me-auto">props.header</strong>
-      </Toast.Header>
-      <Toast.Body>{props.message}</Toast.Body>
-    </Toast>
+    <Modal show={props.show} onHide={handleClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>Delete Book</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Alert variant="danger">
+          Are you sure you want to delete this book?
+        </Alert>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={handleClose}>
+          No
+        </Button>
+        <Button
+          variant="danger"
+          onClick={() => props.handleDelete(props.bookData.id)}
+        >
+          Yes
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 }
+
 
 export default function UsersCRUD(props) {
   const [users, setUsers] = useState([]);
   const [show, setShow] = useState(false);
-  const [showDeleteNotification, setShowDeleteNotification] = useState(false);
-  const [showIsSureModal, setShowIsSureModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState(0);
 
+  const [isExpiredMessage, setIsExpiredMessage] = useState('');
 
-  const userToken = localStorage.getItem("token") === null ? "" : localStorage.getItem("token");
+  //const [token, setToken] = useState(localStorage.getItem("AccessToken"));
+ // const {token, setToken} = useUserToken(localStorage.getItem("AccessToken"));
 
-  async function getUsers() {
-    return await fetch("http://localhost:3001/users", {
-      method: "GET",
+  async function getUsers(){
+
+    const res = await axiosMain.get("/users",{
       headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + userToken,
+        Authorization: `Bearer ${localStorage.getItem("AccessToken")}`,
       },
-    }).then((data) => {
-      if(data.status == 401){
-        
-        console.log(userToken);
-
-      }else{
-        
-        return data.json();
+    }).catch((err) => {
+      if(err.response.status === 401 || err.response.status === 403){
+        setIsExpiredMessage("Your session has expired. Please Refresh the page");
+        checkAndRefreshToken();
       }
-    });
-  }
-  async function deleteUser() {
-    let id = currentUser.id;
-    await fetch(_LINK + "user/" + id, {
-      method: "DELETE",
+
     })
-      .then((res) => {
-        if (!res.ok) {
-          return Promise.reject(res);
-        }
-        setShowDeleteNotification(true);
-        //Delete from the users array
-        let newArray = users.filter((user2) => {
-          return user2.id != id;
-        });
-        setUsers(newArray);
 
-        console.log(res);
-      })
-      .catch((err) => {
-        console.log(err);
-        err.json().then((data) => {
-          console.log(data);
-          setShowIsSureModal(false);
-          
-          setShowDeleteNotification(true);
-        });
-      });
+    if(res){
+      setIsExpiredMessage('');
+      setUsers(res.data);
+    }
+
+
   }
 
+  const handleAdd = async (bookData) => {
+    const res = await axios.post("/books", bookData);
+    setUsers([...users, res.data]);
+    setShow(false);
+  }
+  const handleSave = async (bookData) => {
+    const res = await axios.put("/books/" + bookData.id, bookData);
+    setUsers(
+      users.map((book) => {
+        if (book.id === bookData.id) {
+          return res.data;
+        }
+        return book;
+      })
+    );
+    setShow(false);
+  };
   useEffect(() => {
-    getUsers().then((data) => {
-      console.log(data);
-      setUsers(data);
-    });
+    getUsers();
   }, []);
+
+
   return (
     <div className="tableContainer">
       <Button
@@ -455,20 +201,8 @@ export default function UsersCRUD(props) {
       >
         Add User
       </Button>
-      <MyModal setShow={setShow} getShow={show} />
-      <IsSureModal
-        setShow={setShowIsSureModal}
-        getShow={showIsSureModal}
-        onYes={() => {
-          deleteUser();
-          setShowIsSureModal(false);
-        }}
-      />
-      <EditUserModal
-        setShow={setShowEditModal}
-        getShow={showEditModal}
-        user={currentUser}
-      />
+      <MyModal show={show} setShow={setShow} handleSave={handleSave} validated={{error:false, message:""}} bookData={{title:"", date:"", rated:0, author_id:null}} setBookData={()=>{}} isEdit={false}/>
+
 
       <Table hover bordered responsive>
         <thead>
@@ -481,21 +215,16 @@ export default function UsersCRUD(props) {
           </tr>
         </thead>
         <tbody>
-          {localStorage.getItem('token') !== null && <p>Sorry you are not authorized here !!</p>}
+          {isExpiredMessage != '' && (<tr><td colSpan="5">{isExpiredMessage}</td></tr>)}
           {users &&
             users.map((user) => {
               return (
                 <tr>
-                  <td>{user.id}</td>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>
+                  <td>{user.id}</td><td>{user.name}</td><td>{user.email}</td><td>{user.role}</td><td>
                     <Button
                       variant="warning"
                       onClick={() => {
-                        setCurrentUser(user);
-                        setShowEditModal(true);
+                      
                       }}
                     >
                       Edit
@@ -503,8 +232,7 @@ export default function UsersCRUD(props) {
                     <Button
                       variant="danger"
                       onClick={async () => {
-                        setCurrentUser(user);
-                        setShowIsSureModal(true);
+                      
                       }}
                     >
                       Delete
@@ -515,13 +243,7 @@ export default function UsersCRUD(props) {
             })}
         </tbody>
       </Table>
-      <Notification
-        bg="success"
-        header="User deleted successfully"
-        message="User deleted successfully"
-        show={showDeleteNotification}
-        setShow={setShowDeleteNotification}
-      />
+
     </div>
   );
 }

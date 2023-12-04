@@ -1,5 +1,5 @@
 
-import { Author } from '../Models/Author.js';
+import { AuthorDTO } from '../DTO/Author/AuthorDTO.js';
 import { AuthorDAO } from '../dataAccess/AuthorDAO.js'
 
 export class AuthorSQLiteDAO extends AuthorDAO {
@@ -31,7 +31,7 @@ export class AuthorSQLiteDAO extends AuthorDAO {
 
     async create(author) {         
         const request = await this.db.run(`INSERT INTO authors (name, date, rate) VALUES ('${author.name}', '${author.date}', '${author.rate}')`);
-        author.setID(request.lastID);
+       // author.setID(request.lastID);
         return author;
     
     }
@@ -42,8 +42,8 @@ export class AuthorSQLiteDAO extends AuthorDAO {
         if(author == undefined){
             return undefined;
         }
-        let authorObject = new Author(author.name, author.date, author.rate);
-        authorObject.setID(author.id);
+        let authorObject = new AuthorDTO(author.name, author.date, author.rate);
+        //authorObject.setID(author.id);
         return authorObject;
     }
 

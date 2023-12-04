@@ -3,26 +3,26 @@ import { Book } from '../Models/Book.js'
 import * as utils from '../Utils/Utils.js'
 
 import jwt from 'jsonwebtoken'
+import { BookDTO } from '../DTO/Book/BookDTO.js';
+import UserDTO from '../DTO/User/UserDTO.js';
 
 
 
 
 export async function createBook(req, res,conection){
     let bookBody = req.body;
-    console.log(bookBody);
-    const checkAttributes = utils.checkAttributes(bookBody);
+    const book = new BookDTO(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+    const checkAttributes = utils.checkAttributes(book);
+
+
+
     if(checkAttributes.ok == false){
         res.status(checkAttributes.status);
         res.send(checkAttributes);
         return;
     }
 
-
-    //I dont need to check if the book exist beacuae i dont need to
-
  
-
-    let book = new Book(bookBody.title, bookBody.date, bookBody.author_id, bookBody.rated);
     const db = await conection;
     let bookDAO = new BookSQLiteDAO(db);
     let result = await bookDAO.create(book);
@@ -37,7 +37,7 @@ export async function readBook(req, res,conection){
     const checkId = utils.checkId(id);
     if(checkId.ok == false){
         res.status(checkId.status);
-        res.send(checkId.error);
+        res.send(checkId);
         return;
     }
 
@@ -55,23 +55,24 @@ export async function readBook(req, res,conection){
 export async function updateBook(req, res,conection){
     let id = req.params.id;
     let bookBody = req.body;
-    bookBody = JSON.parse(JSON.stringify(bookBody));
+    const book = new BookDTO(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+
     
     const checkId = utils.checkId(id);
     if(checkId.ok == false){
-        res.status(checkId.error.status);
-        res.send(checkId.error);
+        res.status(checkId.status);
+        res.send(checkId);
         return;
     }
 
-    const checkAttributes = utils.checkAttributes(bookBody);
+    const checkAttributes = utils.checkAttributes(book);
     if(checkAttributes.ok == false){
-        res.status(checkAttributes.error.status);
-        res.send(checkAttributes.error);
+        res.status(checkAttributes.status);
+        res.send(checkAttributes);
         return;
     }
 
-    let book = new Book(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+   
 
     const db = await conection;
     let bookDAO = new BookSQLiteDAO(db);

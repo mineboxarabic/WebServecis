@@ -4,28 +4,27 @@ import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import * as utils from "../Utils/Utils.js";
 import 'dotenv/config';
+import UserDTO from "../DTO/User/UserDTO.js";
+import { Token } from "../Models/Token.js";
+import { TokenSQLiteDAO } from "../repositories/TokenSQLiteDAO.js";
+import TokenDTO from "../DTO/User/TokenDTO.js";
+import { UserDTOMapper } from "../DTO/User/UserDTOMapper.js";
+import cookieParser from "cookie-parser";
 //Import the .env file
 
 //We need to check the id in each route
 //We need to check the body in each route
-let refreshTokens = [];
+
 
 export async function createUser(req, res, conection) {
     let userBody = req.body;
     console.log(req.body);
     const check = utils.checkAttributes(userBody);
 
-    //Check if there is empty string
-    //Check email 
     
     let isEmailGood = userBody.email.includes("@");
     console.log(isEmailGood)
-    if(isEmailGood == false){
-        res.status(400);
-        res.send({error: "Email is not valid", status: 400, ok:false});
-        console.log("Email is not valid")
-        return;
-    }
+    if(isEmailGood == false){res.status(400);res.send({error: "Email is not valid", status: 400, ok:false});return;}
 
     //CHeck for special  characters in name or email or password
     let isNameGood = utils.checkForSpecialCharacters(userBody.name);    
@@ -84,34 +83,31 @@ export async function readUser(req, res, conection) {
 export async function updateUser(req, res, conection) {
     let id = req.params.id;
     let userBody = req.body;
-    userBody = JSON.parse(JSON.stringify(userBody));
+    userBody = userBody;
+
+    
 
     if(utils.checkId(id).ok == false){
         return utils.checkId(id);
     }
-    if (utils.checkAttributes(userBody).ok == false) {
-    console.log(userBody);
-
-        const error = { error: "User not found to update", status: 404, ok:false};
-        res.status(404);
-        res.send(error);
-        return;
-    }
-    if (userBody.role == undefined ) {
-        userBody.role = 0;
-    }
-
 
 
     const db = await conection;
     let userDAO = new UserSQLiteDAO(db);
+
+    if(userBody.password != undefined){
+        //Salt from the useerBody.password
+        const salt = bcrypt.genSaltSync(10);
+
+        userBody.password = await bcrypt.hash(userBody.password, salt);
+    }
     let result = await userDAO.update(userBody, id);
-
-    //Unhashed password
-    let password = userBody.password;
-    //Unhashing the password using the env.
-    let unHashedPassword = await bcrypt.hash(password, 10);
-
+    if (result == undefined) {
+        const error = { error: "User not found to update", status: 404};
+        res.status(404);
+        res.send(error);
+        return;
+    }
 
     res.status(200);
     res.send(result);
@@ -163,7 +159,10 @@ export async function getLastId(conection) {
 
 export async function login(req, res, conection) {
     let userBody = req.body;
-    if (utils.checkAttributes(userBody).ok == false) {
+    const db = await conection;
+
+    const user = await readByEmail(db, userBody.email);
+    if (utils.checkAttributes(user).ok == false) {
         const error = { error: "Not valid data", status: 404};
         res.status(error.status);
         res.send(error);
@@ -171,9 +170,6 @@ export async function login(req, res, conection) {
     }
 
 
-
-    //In this case we need to use readByEmail because we need to take the password from the database
-    let user = await readByEmail(conection, userBody.email);
     if (user == undefined) {
         const error = { error: "User not found to login", status: 404, user: user, ok:false};
         
@@ -196,18 +192,31 @@ export async function login(req, res, conection) {
     }
     console.log("the logged in is", user);
     const accessToken = generateAccessToken({name: user.name, email: user.email, role: user.role});
-    
-    
-   
-    console.log("good");
+    const refreshToken = jwt.sign({name: user.name, email: user.email, role: user.role}, process.env.REFRESH_TOKEN_SECRET);
+
+    const tokenDAO = new TokenSQLiteDAO(db);
+
+    const userDAO = new UserSQLiteDAO(db);
+    const id = await userDAO.findIdByEmail(user.email);
+
+    const userWithId = new UserDTOMapper().fromDTO(user,id);
+
+
+    const token = new TokenDTO(userWithId.id,refreshToken);
+    await tokenDAO.create(token);
+
+    res.cookie("refreshToken", refreshToken, {httpOnly: true});
+    res.cookie("accessToken", accessToken, {httpOnly: true});
+
+
+
     res.status(200);
-    res.send({ accessToken: accessToken});
+    res.send({ accessToken: accessToken , refreshToken: refreshToken });
 };
 
 export async function register(req, res, conection) {
     let userBody = req.body;
 
-    //TODO: Check if we need the checkAttributes function
     const check = utils.checkAttributes(userBody);
     if (check.ok == false) {res.status(check.status);res.send(check.error);return;}
 
@@ -221,11 +230,11 @@ export async function register(req, res, conection) {
 
 
 async function readByEmail(conection,email){
-    console.log("Good");
+    console.log(email);
 
     const db = await conection;
     const userDAO = new UserSQLiteDAO(db);
-    console.log("Good");
+
 
     return userDAO.readByEmail(email);
 }
@@ -246,19 +255,19 @@ export async function createRoutes(app, conection) {
         await createUser(req, res, conection);
     });
 
-    app.get("/user/:id",authorizeUser, async (req, res) => {
+    app.get("/user/:id", async (req, res) => {
         await readUser(req, res, conection);
     });
 
-    app.get("/users",authorizeUser,async (req, res) => {
+    app.get("/users",authenticateToken,async (req, res) => {
         await readUsers(req, res, conection);
     });
 
-    app.put("/user/:id",authorizeUser, async (req, res) => {
+    app.put("/user/:id", async (req, res) => {
         await updateUser(req, res, conection);
     });
 
-    app.delete("/user/:id",authorizeUser, async (req, res) => {
+    app.delete("/user/:id", async (req, res) => {
         await deleteUser(req, res, conection);
     });
 
@@ -270,38 +279,63 @@ export async function createRoutes(app, conection) {
         await register(req, res, conection);
     });
 
-    app.post("/token", async (req, res) => {
+    app.post("/refresh", async (req, res) => {
         const refreshToken = req.body.token;
+   
         if(refreshToken == null){
             return res.sendStatus(401);
         }
-        if(!refreshTokens.includes(refreshToken)){
+
+        const db = await conection;
+        const tokenDAO = new TokenSQLiteDAO(db);
+        const token = await tokenDAO.readByToken(refreshToken);
+        if(token == undefined){
+            console.log("The token is undefined");
             return res.sendStatus(403);
         }
 
-
+        
         jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
             if(err){
+                console.log("The error is: " + err);
                 return res.sendStatus(403);
             }
-            console.log("The refresh token: " + refreshToken , "size: " + refreshTokens.length);
+        
             const accessToken =  generateAccessToken({name: user.name, email: user.email, role: user.role});
             res.json({accessToken: accessToken});
         })
     });
 
+    app.post("/logout", async (req, res) => {
+        refreshTokens = refreshTokens.filter(token => token !== req.body.token);
+        res.sendStatus(204);
+    })
+
+
+
 }
 
-function authenticateToken(req, res, next){
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
+function generateAccessToken(user){
+    if (!user) throw new Error("aUser data is required for token genertion");
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET , {expiresIn: '5s'});
+}
 
+
+function authenticateToken(req, res, next){
+    //get the access token and refresh token
+    const authHeader = req.headers['authorization']
+
+    
+    const token = authHeader && authHeader.split(' ')[1]
     if(token == null){
         return res.sendStatus(401);
     }
 
+
+
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if(err){
+            console.log("The error is: " + err);
             return res.sendStatus(403);
         }
         req.user = user;
@@ -331,7 +365,4 @@ function authorizeUser(req, res, next){
     })
 }
 
-function generateAccessToken(user){
-    if (!user) throw new Error("User data is required for token generation");
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
-}
+
