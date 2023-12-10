@@ -67,11 +67,22 @@ export default function LogInPage(props){
                             email: email,
                             password: password
                         })
-                        console.log(response.data);
                         setAlert({show:true, message:"Logged in successfully", bg:"success"})
 ;                       const accessToken = response.data.accessToken;
                         setToken(accessToken);
 ;                       const refreshToken= response.data.refreshToken;
+
+
+                        const role = await axiosMain.get('/users/me', {
+                            headers: {
+                                Authorization: `Bearer ${accessToken}`
+                            }
+                        })
+                        console.log(role.data.role);
+                        localStorage.setItem('Role', role.data.role);
+
+                        window.location.href = "/home";
+                        
 
                         localStorage.setItem('RefreshToken', refreshToken);    
 

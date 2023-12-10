@@ -8,8 +8,9 @@ function MyModal(props) {
   const [bookData, setBookData] = useState({
     title: "",
     date: "",
+    author_id: 0,
     rated: 0,
-    author_id: null,
+
   });
 
   function getDate() {
@@ -179,6 +180,7 @@ function BooksCRUD() {
       newDate = new Date(book.date);
       book.date = newDate.toISOString().slice(0, 10);
     }
+    console.log(book);
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },

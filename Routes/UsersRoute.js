@@ -18,7 +18,6 @@ import cookieParser from "cookie-parser";
 
 export async function createUser(req, res, conection) {
     let userBody = req.body;
-    console.log(req.body);
     const check = utils.checkAttributes(userBody);
 
     
@@ -251,23 +250,23 @@ async function isUserExist(conection,email){
 
 
 export async function createRoutes(app, conection) {
-    app.post("/user", async (req, res) => {
+    app.post("/user",authorizeUser, async (req, res) => {
         await createUser(req, res, conection);
     });
 
-    app.get("/user/:id", async (req, res) => {
+    app.get("/user/:id",authorizeUser, async (req, res) => {
         await readUser(req, res, conection);
     });
 
-    app.get("/users",authenticateToken,async (req, res) => {
+    app.get("/users",authorizeUser,async (req, res) => {
         await readUsers(req, res, conection);
     });
 
-    app.put("/user/:id", async (req, res) => {
+    app.put("/user/:id",authorizeUser, async (req, res) => {
         await updateUser(req, res, conection);
     });
 
-    app.delete("/user/:id", async (req, res) => {
+    app.delete("/user/:id",authorizeUser, async (req, res) => {
         await deleteUser(req, res, conection);
     });
 
@@ -281,14 +280,19 @@ export async function createRoutes(app, conection) {
 
     app.post("/refresh", async (req, res) => {
         const refreshToken = req.body.token;
+        console.log("The token is: " +refreshToken);
+
    
-        if(refreshToken == null){
+        if(refreshToken == null || refreshToken == undefined){
+            console.log("The token is null or undefined");
             return res.sendStatus(401);
         }
 
         const db = await conection;
         const tokenDAO = new TokenSQLiteDAO(db);
         const token = await tokenDAO.readByToken(refreshToken);
+
+        console.log("refreshToken is: " + refreshToken);
         if(token == undefined){
             console.log("The token is undefined");
             return res.sendStatus(403);
@@ -306,9 +310,44 @@ export async function createRoutes(app, conection) {
         })
     });
 
-    app.post("/logout", async (req, res) => {
-        refreshTokens = refreshTokens.filter(token => token !== req.body.token);
-        res.sendStatus(204);
+    app.post("/logout", authenticateToken, async (req, res) => {
+
+            const refreshToken = req.body.token;
+
+            if(refreshToken == null || refreshToken == undefined){
+                console.log("The token is null or undefined");
+                return res.sendStatus(401);
+            }
+
+            //Get the user from the token
+            let user = null;
+            jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+                if(err){
+                    console.log("The error is: " + err);
+                    return res.sendStatus(403);
+                }
+                user = user;
+
+                const db = await conection;
+                const tokenDAO = new TokenSQLiteDAO(db);
+                const token = await tokenDAO.deleteAllTokens(user.email);
+                console.log("The token is: " + JSON.stringify(token));
+                console.log("refreshToken is: " + refreshToken);
+                if(token == undefined){
+                    console.log("The token is undefined");
+                    return res.sendStatus(403);
+                }
+               
+    
+                res.sendStatus(204);
+            }
+            )
+
+    })
+
+    app.get("/users/me", authenticateToken, async (req, res) => {
+        const user = req.user;
+        res.send(user);
     })
 
 
@@ -317,7 +356,7 @@ export async function createRoutes(app, conection) {
 
 function generateAccessToken(user){
     if (!user) throw new Error("aUser data is required for token genertion");
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET , {expiresIn: '5s'});
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET , {expiresIn: '30s'});
 }
 
 
@@ -332,6 +371,8 @@ function authenticateToken(req, res, next){
     }
 
 
+   
+
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if(err){
@@ -344,25 +385,33 @@ function authenticateToken(req, res, next){
 }
 
 function authorizeUser(req, res, next){
+    //get the access token and refresh token
     const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
 
+    
+    const token = authHeader && authHeader.split(' ')[1]
     if(token == null){
         return res.sendStatus(401);
     }
 
+
+   
+
+
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if(err){
+            console.log("The error is: " + err);
             return res.sendStatus(403);
         }
-        console.log("The user role is: " + JSON.stringify(user));
-        if(user.role != 1){
+
+        if(user.role == 0){
             console.log("The user is not admin");
-            return res.sendStatus(403);
+
+            res.status(403);
+            res.send({error: "You are not admin", status: 403, ok:false});
         }
         req.user = user;
         next();
     })
 }
-
 

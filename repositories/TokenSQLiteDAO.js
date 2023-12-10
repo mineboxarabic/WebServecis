@@ -26,4 +26,9 @@ export class TokenSQLiteDAO extends TokenDAO{
         const tokenDB = this.db.get(`SELECT * FROM tokens WHERE token = '${token}'`);
         return tokenDB;
     }
+
+    deleteAllTokens(email){
+        const deleteTokens = this.db.run(`DELETE FROM tokens WHERE user_id = (SELECT id FROM users WHERE email = '${email}')`);
+        return deleteTokens;
+    }
 }

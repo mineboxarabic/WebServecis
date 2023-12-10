@@ -5,9 +5,10 @@ import { useContext } from "react";
 
 // or less ideally
 import { Button, Container, Nav, Navbar, NavDropdown} from 'react-bootstrap';
+import axiosMain, { checkAndRefreshToken } from "../api/mainAxios";
 export function Header(props){
 
-
+  const userRole = localStorage.getItem("Role") || 0;
 useEffect(()=>{
 
       console.log(localStorage.getItem('token') === null);
@@ -42,9 +43,28 @@ return(
         </Nav>
       </Navbar.Collapse>
     </Container>
-{localStorage.getItem('token') !== null ? <Button onClick={()=>{
+    <p>Logged in as <p style={
+      {
+        color: "red",
+        display: "inline",
+        marginLeft: "5px",
+        marginRight: "5px"
+      }
+    }>{localStorage.getItem('Role') == 1 ? "Admin" : "User"}</p></p>
+{localStorage.getItem('AccessToken') != null ? <Button onClick={async ()=>{
   
-  localStorage.removeItem('token');
+  await axiosMain.post("/logout",
+  {
+    token: localStorage.getItem('RefreshToken')
+  }
+  ).catch((err) => {
+    if(err.response.status === 401 || err.response.status === 403){
+      checkAndRefreshToken();
+    }
+  });
+  localStorage.removeItem('AccessToken');
+  localStorage.removeItem('RefreshToken');
+  window.location.href = "/login";
   
 
 }} variant="outline-danger">Log out</Button>

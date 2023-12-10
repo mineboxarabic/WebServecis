@@ -9,8 +9,7 @@ import Modal from "react-bootstrap/Modal";
 import Toast from "react-bootstrap/Toast";
 
 
-import axios from "../api/mainAxios";
-import useUserToken from "../api/Context/useUserToken";
+//import axios from "../api/mainAxios";
 import axiosMain, { checkAndRefreshToken } from "../api/mainAxios";
 
 
@@ -149,33 +148,31 @@ export default function UsersCRUD(props) {
 
   async function getUsers(){
 
-    const res = await axiosMain.get("/users",{
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("AccessToken")}`,
-      },
-    }).catch((err) => {
-      if(err.response.status === 401 || err.response.status === 403){
-        setIsExpiredMessage("Your session has expired. Please Refresh the page");
-        checkAndRefreshToken();
-      }
-
-    })
-
+   const res = await axiosMain.get("/users").catch((err) => {
+    if(err.response.status === 401 || err.response.status === 403){
+      setIsExpiredMessage("Your session has expired. Please Refresh the page");
+      checkAndRefreshToken();
+    }
+   });
+    
     if(res){
       setIsExpiredMessage('');
       setUsers(res.data);
     }
 
+  
+    
+
 
   }
 
   const handleAdd = async (bookData) => {
-    const res = await axios.post("/books", bookData);
+    const res = await axiosMain.post("/books", bookData);
     setUsers([...users, res.data]);
     setShow(false);
   }
   const handleSave = async (bookData) => {
-    const res = await axios.put("/books/" + bookData.id, bookData);
+    const res = await axiosMain.put("/books/" + bookData.id, bookData);
     setUsers(
       users.map((book) => {
         if (book.id === bookData.id) {

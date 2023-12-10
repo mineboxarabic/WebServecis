@@ -11,7 +11,11 @@ import UserDTO from '../DTO/User/UserDTO.js';
 
 export async function createBook(req, res,conection){
     let bookBody = req.body;
-    const book = new BookDTO(bookBody.title, bookBody.date, bookBody.author, bookBody.rated);
+    console.log('rated',bookBody['author_id']);
+
+    const book = new BookDTO(bookBody.title, bookBody.date,bookBody['rated'],bookBody.author_id);
+    console.log(book);
+
     const checkAttributes = utils.checkAttributes(book);
 
 
